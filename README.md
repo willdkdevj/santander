@@ -5,7 +5,7 @@
 [![Maven Badge](https://img.shields.io/badge/-Maven-000?style=flat-square&logo=Apache-Maven&logoColor=white&link=https://maven.apache.org/)](https://maven.apache.org/)
 
 
-<img align="right" width="200" height="150" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/santander_banner.jpeg">
+<img align="right" width="200" height="150" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/santander-banner.jpeg">
 
 ## Sobre o Santander
 O **Santander Brasil** é a subsidiária do banco espanhol Banco Santander no Brasil. Sediada em São Paulo, no estado homônimo, a operação brasileira entrou em atividade desde 1982 e é parte integrante do Grupo Santander, de origem espanhola, que é o principal conglomerado financeiro da Zona do Euro.
