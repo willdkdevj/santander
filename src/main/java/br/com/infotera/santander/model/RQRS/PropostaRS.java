@@ -1,76 +1,66 @@
 package br.com.infotera.santander.model.RQRS;
 
+import br.com.infotera.santander.model.ClientData;
+import br.com.infotera.santander.model.ProposalParam;
+
 public class PropostaRS {
 
-    private String creationDate;
-
-    private String proposalExternalId;
-
-    private Integer proposalId;
-
-    private String status;
-
-    private String statusAdp;
-
-    private String statusDescription;
-
+    private Integer id;
+    private String proposalId;
+    private String code;
+    private Boolean validated;
+    private ClientData clientData;
+    private ProposalParam proposalParams;
+    
     public PropostaRS() {
     }
 
-    public PropostaRS(String creationDate, String proposalExternalId, Integer proposalId, String status, String statusAdp, String statusDescription) {
-        this.creationDate = creationDate;
-        this.proposalExternalId = proposalExternalId;
-        this.proposalId = proposalId;
-        this.status = status;
-        this.statusAdp = statusAdp;
-        this.statusDescription = statusDescription;
+    public Integer getId() {
+        return id;
     }
 
-    public String getCreationDate() {
-        return creationDate;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
-    public void setCreationDate(String creationDate) {
-        this.creationDate = creationDate;
-    }
-
-    public String getProposalExternalId() {
-        return proposalExternalId;
-    }
-
-    public void setProposalExternalId(String proposalExternalId) {
-        this.proposalExternalId = proposalExternalId;
-    }
-
-    public Integer getProposalId() {
+    public String getProposalId() {
         return proposalId;
     }
 
-    public void setProposalId(Integer proposalId) {
+    public void setProposalId(String proposalId) {
         this.proposalId = proposalId;
     }
 
-    public String getStatus() {
-        return status;
+    public String getCode() {
+        return code;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setCode(String code) {
+        this.code = code;
     }
 
-    public String getStatusAdp() {
-        return statusAdp;
+    public Boolean getValidated() {
+        return validated;
     }
 
-    public void setStatusAdp(String statusAdp) {
-        this.statusAdp = statusAdp;
+    public void setValidated(Boolean validated) {
+        this.validated = validated;
     }
 
-    public String getStatusDescription() {
-        return statusDescription;
+    public ClientData getClientData() {
+        return clientData;
     }
 
-    public void setStatusDescription(String statusDescription) {
-        this.statusDescription = statusDescription;
+    public void setClientData(ClientData clientData) {
+        this.clientData = clientData;
     }
+
+    public ProposalParam getProposalParams() {
+        return proposalParams;
+    }
+
+    public void setProposalParams(ProposalParam proposalParams) {
+        this.proposalParams = proposalParams;
+    }
+
 }

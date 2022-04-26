@@ -1,83 +1,63 @@
 package br.com.infotera.santander.model.RQRS;
 
-import br.com.infotera.santander.model.Customer;
-import br.com.infotera.santander.model.Fee;
-import br.com.infotera.santander.model.Payment;
-import br.com.infotera.santander.model.Store;
-
-import java.util.UUID;
+import br.com.infotera.santander.model.Lgpd;
+import br.com.infotera.santander.model.ListTerms;
+import br.com.infotera.santander.model.PartnerClient;
+import br.com.infotera.santander.model.Simulation;
+import br.com.infotera.santander.model.SimulationInput;
+import com.google.gson.annotations.SerializedName;
 
 public class SimulacaoRQ {
 
-    private String tableNumber;
+    private Simulation simulation;
+    private PartnerClient partnerClient;
+    private ListTerms listTerms;
+    private Lgpd lgpd;
 
-    private UUID uuid;
-
-    private Customer customer;
-
-    private Payment payment;
-
-    private Store store;
-
-    private Fee fees;
-
+    @SerializedName("SimulationInput")
+    private SimulationInput simulationInput;
+    
     public SimulacaoRQ() {
     }
 
-    public SimulacaoRQ(String tableNumber, UUID uuid, Customer customer, Payment payment, Store store, Fee fees) {
-        this.tableNumber = tableNumber;
-        this.uuid = uuid;
-        this.customer = customer;
-        this.payment = payment;
-        this.store = store;
-        this.fees = fees;
+    public Simulation getSimulation() {
+        return simulation;
     }
 
-    public String getTableNumber() {
-        return tableNumber;
+    public void setSimulation(Simulation simulation) {
+        this.simulation = simulation;
     }
 
-    public void setTableNumber(String tableNumber) {
-        this.tableNumber = tableNumber;
+    public PartnerClient getPartnerClient() {
+        return partnerClient;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public void setPartnerClient(PartnerClient partnerClient) {
+        this.partnerClient = partnerClient;
     }
 
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+    public ListTerms getListTerms() {
+        return listTerms;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public void setListTerms(ListTerms listTerms) {
+        this.listTerms = listTerms;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public Lgpd getLgpd() {
+        return lgpd;
     }
 
-    public Payment getPayment() {
-        return payment;
+    public void setLgpd(Lgpd lgpd) {
+        this.lgpd = lgpd;
     }
 
-    public void setPayment(Payment payment) {
-        this.payment = payment;
+    public SimulationInput getSimulationInput() {
+        return simulationInput;
     }
 
-    public Store getStore() {
-        return store;
+    public void setSimulationInput(SimulationInput simulationInput) {
+        this.simulationInput = simulationInput;
     }
-
-    public void setStore(Store store) {
-        this.store = store;
-    }
-
-    public Fee getFees() {
-        return fees;
-    }
-
-    public void setFees(Fee fees) {
-        this.fees = fees;
-    }
+    
 }

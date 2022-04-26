@@ -3,7 +3,7 @@
 
 [![Spring Badge](https://img.shields.io/badge/-Spring-brightgreen?style=flat-square&logo=Spring&logoColor=white&link=https://spring.io/)](https://spring.io/)
 [![Maven Badge](https://img.shields.io/badge/-Maven-000?style=flat-square&logo=Apache-Maven&logoColor=white&link=https://maven.apache.org/)](https://maven.apache.org/)
-
+[![Gson Badge](https://img.shields.io/badge/-Gson-informational?style=flat-square&logo=Google&logoColor=white&link=https://sites.google.com/site/gson/)](https://sites.google.com/site/gson/)
 
 <img align="right" width="200" height="150" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/santander-banner.jpeg">
 
@@ -43,9 +43,6 @@ O objetivo desta aplicação é servir de base para a utilização das chamadas 
 Para isso, o cliente deve estar previamente cadastrado na plataforma do Santander Financiamento, e seu estado deve estar Aprovado, selecionar o insumo desejado e escolher a forma de pagamento do boleto bancário à vista ou financiamento com débito em conta, no Infotravel.
 
 
-
-
-
 <img align="middle" width="600" height="200" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/fluxo_principal.jpeg">
 
 
@@ -76,15 +73,44 @@ Modelo de Requisição REST utilizando os parâmetros Authentication Bearer e *C
 
 
 ## Processo de Autenticação (TOKEN)
-O fornecedor disponibiliza ao cliente um identificador no formato de TOKEN que deve ser informado em conjunto com usuário e senha a fim de caso validado seja fornecido um identificador final (TOKEN) com o intuito de validar todo o processo transacional.
+O fornecedor disponibiliza ao cliente credenciais no formato usuário e senha (*username/password*) na qual devem ser trata a fim de gerar um *TOKEN* **(Base64)**. A chamada ao *endpoint* se faz através de um formulário codificado (*form-urlencoded*) que encaminhará uma requisição do tipo POST, com o parâmetro **storeId** com o valor nulo (*null*) a fim de obter a lista de códigos de negócio disponibilidado para o cliente, denominado de *identificação da loja ou lojaID (StoreID)*.
 
 <img align="middle" width="600" height="500" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/processo_autenticacao.jpeg">
 
-O token inicial (identificador do cliente) deve ser enviado no cabeçalho da chamada a autenticação, na qua caso seja validada será fornecido um segundo token (transacional) a fim a ser utilizada nas demais chamadas do processo. Desta forma, o token inicial é só utilizado na primeira chamada ao método de autenticação.
+Caso o retorno seja satisfatório, é retornado uma lista de código de negócios onde para o tipo de serviço que disponibilizamos é buscado o código correspondente a ***Turismo*** a fim de utilizar o seu identificador para as demais chamadas, e na chamada subsequente ao *endpoint (token)* desta vez é passado o id localizado, referente ao tipo de negócio, ao parâmetro **storeId** do formulário, para obtermos o *TOKEN* de validação da sessão do usuário.
+
+```json
+{
+  "stores": [
+    {
+      "statusCode": "A",
+      "code": "458469",
+      "name": "Alph",
+      "id": 2
+    },
+    {
+      "statusCode": "A",
+      "code": "405460",
+      "name": "Turismo",
+      "id": 137477
+    }
+  ]
+}
+```
 
 <img align="middle" width="600" height="200" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/processo_autenticacao2.jpeg">
 
-> **NOTA:** *O TOKEN Transacional permanece ativo por 15 (quinze) minutos, onde ao expirar este tempo será necessário realizar uma nova chamada para autenticação*.
+Desta forma, o retorno sendo satisfatório será o TOKEN *Transacional* que validará a sessão com inforações sobre seu tipo e validade.
+```json
+{
+  "access_token": "eyJ4NXQiOiJNelU2IiwiYWxnIjoiUlMyNTYif.AI-xf57Mlh6eG162tFi_TA0DwSRP2ha1NwmLe4wpgSL_WqpMT3eIj8pxIlAw3rxozzwI3vUcy4h4L6QODQxK0qXOsXuITKKXIoEwWdjGAxUM9zpypiIQeW93y5NX_fgxcPg7zJAYyxvyfmMyu76Kkl6KvmjkPTncc5BT9t-irY1xg",
+  "refresh_token": "",
+  "token_type": "Bearer",
+  "expires_in": "3600"
+}
+```
+
+> **NOTA:** *O TOKEN Transacional permanece ativo até o tempo apontado em *expires_in* (segundos), na qual ao expirar será necessário realizar uma nova chamada para autenticação*.
 
 
 ## Código de Requisições Santander

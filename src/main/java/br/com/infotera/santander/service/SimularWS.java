@@ -3,16 +3,15 @@ package br.com.infotera.santander.service;
 import br.com.infotera.common.ErrorException;
 import br.com.infotera.common.WSCliente;
 import br.com.infotera.common.WSIntegrador;
-import br.com.infotera.common.WSSessao;
 import br.com.infotera.common.enumerator.WSIntegracaoStatusEnum;
 import br.com.infotera.common.enumerator.WSMensagemErroEnum;
 import br.com.infotera.common.pagto.WSPagtoBoleto;
 import br.com.infotera.common.pagto.WSPagtoCartaoDebito;
 import br.com.infotera.common.pagto.WSPagtoForma;
+import br.com.infotera.common.pagto.WSPagtoMeioFinanciamento;
 import br.com.infotera.common.pagto.financiamento.WSFinanciamentoParcelas;
-import br.com.infotera.common.pagto.financiamento.WSPagtoFinanciamento;
-import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoFinanciamentoRQ;
-import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoFinanciamentoRS;
+import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoAnaliseRQ;
+import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoAnaliseRS;
 import br.com.infotera.common.util.Utils;
 import br.com.infotera.santander.client.SantanderClient;
 import br.com.infotera.santander.model.*;
@@ -22,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -33,45 +33,53 @@ public class SimularWS {
     @Autowired
     private SantanderClient santanderClient;
 
-    public WSPagtoFinanciamentoRS simular(WSPagtoFinanciamentoRQ pagtoFinanciamentoRQ) throws ErrorException {
+    public WSPagtoAnaliseRS simularFinanciamento(WSPagtoAnaliseRQ pagtoAnaliseRQ) throws ErrorException {
         WSIntegrador integrador = null;
-        if (pagtoFinanciamentoRQ.getIntegrador().getSessao() == null) {
-            integrador = sessaoWS.abreSessao(pagtoFinanciamentoRQ.getIntegrador());
+        if (pagtoAnaliseRQ.getIntegrador().getSessao() == null) {
+            integrador = sessaoWS.abreSessao(pagtoAnaliseRQ.getIntegrador());
         } else {
-            integrador = pagtoFinanciamentoRQ.getIntegrador();
+            integrador = pagtoAnaliseRQ.getIntegrador();
         }
-
-        WSPagtoFinanciamento pagtoFinanciamento = montaPagtoFinanciamento(integrador, pagtoFinanciamentoRQ);
-
-        return null;
-    }
-
-    private WSPagtoFinanciamento montaPagtoFinanciamento(WSIntegrador integrador, WSPagtoFinanciamentoRQ pagtoFinanciamentoRQ) throws ErrorException {
+        
         // Chamada para obter o Código da Loja (ID Loja) - Deve ser realizada nova chamada para obter novo código, caso seja feita nova análise
         IntegrationCodeRS integrationCode = santanderClient.identificarTab(integrador);
+        
+        // Retorna a quantidade máxima de parcelas para o estabelecimento (StoreId) (VERIFICAR SE SERÁ ENVIADO NO MESMO PARÂMETRO OU SE SERÁ CRIADO OUTRO)
+        InstallmentAmountRS parcelaMax = santanderClient.retornarParcelas(integrador, integrationCode.getTabId());
+        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setQtdParcelas(Integer.parseInt(parcelaMax.getDescription()));
+        
+        // Retorna os tipos de pagamentos permitidos para o cliente
+//        List<WSPagtoForma> pagtoFormaList = retornaFormasPagto(integrador);
+//        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setFormasPagtoList(pagtoFormaList);
 
+        WSPagtoMeioFinanciamento pagtoMeioFinanciamento = montaPagtoMeioFinanciamento(integrador, integrationCode, pagtoAnaliseRQ);
+
+        return new WSPagtoAnaliseRS(integrador, pagtoMeioFinanciamento, pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente(), WSIntegracaoStatusEnum.OK);
+    }
+
+    private WSPagtoMeioFinanciamento montaPagtoMeioFinanciamento(WSIntegrador integrador, IntegrationCodeRS integrationCode, WSPagtoAnaliseRQ pagtoAnaliseRQ) throws ErrorException {
         // Obtem dados do cliente para requisição
-        Customer customer = montaCustomer(integrador, pagtoFinanciamentoRQ);
-
+        Customer customer = montaCustomer(integrador, pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente());
+        
         // Obtem dados da reserva e do conector
-        Purchase purchase = montaPurchase(integrador, pagtoFinanciamentoRQ);
+        Purchase purchase = montaPurchase(integrador, integrationCode, pagtoAnaliseRQ.getPagtoMeioFinanciamento());
+        if(pagtoAnaliseRQ.getReserva().getReservaAereo() != null){
+            purchase.setTravelDate(Utils.formatData(pagtoAnaliseRQ.getReserva().getReservaAereo().getVooList().get(0).getDtPartida(), "yyyy-MM-dd"));
+        }
 
-        // Retorna o objeto financiado referente a TAB (Cod Loja)
-        List<FinancedObjectRS> financedObjectList = santanderClient.retornarFinancedObject(integrador, integrationCode.getTabId());
-
-        // Retorna a quantidade máxima de parcelas para o estabelecimento (StoreId)
-        InstallmentAmountRS installmentAmount = santanderClient.retornarParcelas(integrador, integrationCode.getTabId());
-
-        // Retorna a quantidade máxima de parcelas para o estabelecimento (StoreId)
-        List<ProductCodeRS> productCodeRSList = santanderClient.retornarProductCode(integrador);
-
-        // Realiza a chamada a Pré-Analise com dados do cliente e insumo
+        // Realiza a chamada a Pré-Analise com dados do cliente e insumo a fim de avaliar as possibilidades de financiamento
         PreAnaliseRS preAnaliseRS = chamarPreAnalise(integrador, customer, purchase, integrationCode);
-
+        
+        // Apresentar as informações sobre datas e valores limites (VERIFICAR SE SERÁ ENVIADO NO MESMO OBJETO OU SE SERÁ CRIADO OUTRO)
+        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setDtMinEntrada(Utils.toDate(preAnaliseRS.getAtxResponse().getFirstInstallment().getMinimumDate(), "yyyy-MM-dd"));
+        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setDtMaxEntrada(Utils.toDate(preAnaliseRS.getAtxResponse().getFirstInstallment().getMaximumDate(), "yyyy-MM-dd"));
+        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setVlMinEntrada(preAnaliseRS.getAtxResponse().getEntry().getMinimumValue());
+        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setVlMaxEntrada(preAnaliseRS.getAtxResponse().getEntry().getMaximumValue());
+        
         // Realiza a chamada a Simulação com dados retornados pela Pré-Análise
-        SimulacaoRS simulacaoRS = chamarSimulacao(integrador, integrationCode, customer, preAnaliseRS, pagtoFinanciamentoRQ);
+        SimulacaoRS simulacaoRS = chamarSimulacao(integrador, integrationCode, customer, preAnaliseRS, pagtoAnaliseRQ);
 
-        WSPagtoFinanciamento pagtoFinanciamento = null;
+        WSPagtoMeioFinanciamento pagtoMeioFinanciamento = null;
         if(preAnaliseRS != null) {
             try {
                 List<WSFinanciamentoParcelas> parcelasList = new ArrayList<>();
@@ -104,28 +112,49 @@ public class SimularWS {
                             formaPagtoList.add(forma);
                         });
 
-                pagtoFinanciamento = new WSPagtoFinanciamento();
-                pagtoFinanciamento.setCliente(pagtoFinanciamentoRQ.getPagtoFinanciamento().getCliente());
-                pagtoFinanciamento.setDtPrimeiroVencimento(Utils.toDate(preAnaliseRS.getAtxResponse().getFirstInstallment().getRecommendedDate(), "yyyy-MM-dd"));
-                pagtoFinanciamento.setVlEntrada(preAnaliseRS.getAtxResponse().getEntry().getRecommendedValue());
-                pagtoFinanciamento.setParcelas(parcelasList);
-                pagtoFinanciamento.setCdAutorizacao(preAnaliseRS.getId() + "#"
+                pagtoMeioFinanciamento = new WSPagtoMeioFinanciamento();
+                pagtoMeioFinanciamento.setDtPrimeiroVencimento(Utils.toDate(simulacaoRS.getAtxResponse().getFirstInstallment().getRecommendedDate(), "yyyy-MM-dd"));
+                pagtoMeioFinanciamento.setDtMinEntrada(Utils.toDate(simulacaoRS.getAtxResponse().getFirstInstallment().getMinimumDate(), "yyyy-MM-dd"));
+                pagtoMeioFinanciamento.setDtMaxEntrada(Utils.toDate(simulacaoRS.getAtxResponse().getFirstInstallment().getMaximumDate(), "yyyy-MM-dd"));
+                pagtoMeioFinanciamento.setVlEntrada(simulacaoRS.getAtxResponse().getEntry().getRecommendedValue());
+                pagtoMeioFinanciamento.setVlMinEntrada(simulacaoRS.getAtxResponse().getEntry().getMinimumValue());
+                pagtoMeioFinanciamento.setVlMaxEntrada(simulacaoRS.getAtxResponse().getEntry().getMaximumValue());
+                pagtoMeioFinanciamento.setCorrentista(simulacaoRS.getAtxResponse().getAccountHolder());
+                pagtoMeioFinanciamento.setIndicadorTaxaCredito(simulacaoRS.getAtxResponse().getFees().getTcExemption());
+                
+                pagtoMeioFinanciamento.setPagtoFormaEntrada(verificaFormaPagtoCliente(integrador, preAnaliseRS));
+
+                pagtoMeioFinanciamento.setCdAutorizacao(preAnaliseRS.getId() + "#"
                                                     + preAnaliseRS.getAtxResponse().getPriceTable() + "#"
                                                     + preAnaliseRS.getAtxResponse().getFees().getTabFee() + "#"
                                                     + preAnaliseRS.getUuid().toString());
 
             } catch (Exception ex) {
-                throw new ErrorException(integrador, SimularWS.class,
-                        "montaPagtoFinanciamento", WSMensagemErroEnum.ADI, "Erro ao obter os valores para o PagtoFinanciamento.", WSIntegracaoStatusEnum.ATENCAO, ex);
+                throw new ErrorException(integrador, SimularWS.class, "montaPagtoFinanciamento", 
+                        WSMensagemErroEnum.ADI, "Erro ao obter os valores para o PagtoFinanciamento.", WSIntegracaoStatusEnum.ATENCAO, ex);
             }
         }
 
-        return pagtoFinanciamento;
+        return pagtoMeioFinanciamento;
     }
 
-    private SimulacaoRS chamarSimulacao(WSIntegrador integrador, IntegrationCodeRS integrationCode, Customer customer, PreAnaliseRS preAnaliseRS, WSPagtoFinanciamentoRQ financiamentoRQ) throws ErrorException {
-        SimulacaoRQ simulacaoRQ = null;
+    private PreAnaliseRS chamarPreAnalise(WSIntegrador integrador, Customer customer, Purchase purchase, IntegrationCodeRS integrationCode) throws ErrorException {
+        PreAnaliseRQ preAnaliseRQ = null;
+        
+        if(customer != null && purchase != null && integrationCode != null){
+            preAnaliseRQ.setCustomer(customer);
+            preAnaliseRQ.setPurchase(purchase);
+            preAnaliseRQ.setUuid(integrationCode.getUuid().toString());
+        }
 
+        return santanderClient.preAnalise(integrador, preAnaliseRQ);
+    }
+
+    private SimulacaoRS chamarSimulacao(WSIntegrador integrador, IntegrationCodeRS integrationCode, Customer customer, PreAnaliseRS preAnaliseRS, WSPagtoAnaliseRQ pagtoAnaliseRQ) throws ErrorException {
+        
+        
+        SimulacaoRQ simulacaoRQ = null;
+        
         try {
             Customer customerSimulation = new Customer();
             customerSimulation.setDocument(customer.getDocument());
@@ -141,7 +170,7 @@ public class SimularWS {
                     if(preAnaliseRS.getAtxResponse().getFees() != null && !preAnaliseRS.getAtxResponse().getFees().getTcExemption()) {
                         feeSimulation.setTcFee(false);
                     }
-                    feeSimulation.setTcExemption(preAnaliseRS.getAtxResponse().getFees().getTcExemption()));
+                    feeSimulation.setTcExemption(preAnaliseRS.getAtxResponse().getFees().getTcExemption());
                     simulacaoRQ.setFees(feeSimulation);
                 }
 
@@ -150,13 +179,14 @@ public class SimularWS {
                         WSMensagemErroEnum.ADI, "Erro ao obter os parâmetros de Indicador de Pagamento TAB", WSIntegracaoStatusEnum.ATENCAO, ex);
             }
 
+            verificaFormaPagtoCliente(integrador, preAnaliseRS);
             try {
-                Integer tpEntrada = 0;
-                if (financiamentoRQ.getPagtoFinanciamento().getPagtoFormaEntrada() != null) {
-                    if (financiamentoRQ.getPagtoFinanciamento().getPagtoFormaEntrada().isStCartaoDebito()) {
-                        tpEntrada = 8; // cartao de debito
+                Integer tpPagto = 0;
+                if (preAnaliseRS.getAtxResponse().getAccountHolder()) {
+                    if (pagtoAnaliseRQ.getPagtoMeioFinanciamento().getPagtoFormaEntrada().isStCartaoDebito()) {
+                        tpPagto = 8; // cartao de debito
                     } else {
-                        tpEntrada = 7; // outros meios de entrada(boleto,deposito etc)
+                        tpPagto = 7; // outros meios de entrada(boleto,deposito etc)
                     }
                 }
 
@@ -180,43 +210,113 @@ public class SimularWS {
         return santanderClient.simulacao(integrador, simulacaoRQ);
     }
 
-    private PreAnaliseRS chamarPreAnalise(WSIntegrador integrador, Customer customer, Purchase purchase, IntegrationCodeRS integrationCode) throws ErrorException {
-        PreAnaliseRQ preAnaliseRQ = null;
-
-        if(customer != null && purchase != null && integrationCode != null){
-            preAnaliseRQ.setCustomer(customer);
-            preAnaliseRQ.setPurchase(purchase);
-            preAnaliseRQ.setUuid(integrationCode.getUuid().toString());
-        }
-
-        return santanderClient.preAnalise(integrador, preAnaliseRQ);
-    }
-
-    private Purchase montaPurchase(WSIntegrador integrador, WSPagtoFinanciamentoRQ pagtoFinanciamentoRQ) throws ErrorException {
+    private Purchase montaPurchase(WSIntegrador integrador, IntegrationCodeRS integrationCode, WSPagtoMeioFinanciamento pagtoMeioFinanciamento) throws ErrorException {
         Purchase purchase = null;
+        
+        // Retorna o objeto financiado referente a TAB (Cod Loja)
+        FinancedObjectRS financedObject = santanderClient.retornarFinancedObject(integrador, integrationCode.getTabId());
+        
+        // Retorna o SubSegmento na qual o Santander classifica o negócio (Agência)
+        SubSegmentRS subSegment = santanderClient.retornarSubSegment(integrador, integrationCode.getTabId());
+        
         try {
-            purchase.setFinancedObject("MO"); // PARA TESTES FOI SETADO VALOR FIXO AO INVÉS DE REALIZAR CHAMADA GET PARA OBTER O ID
-            purchase.setEntryValue(pagtoFinanciamentoRQ.getPagtoFinanciamento().getVlEntrada()); // Valor de Entrada
-            purchase.setInstallmentValue(pagtoFinanciamentoRQ.getPagtoFinanciamento().getVlDemaisParcelas()); // Valor das Parcelas
-            purchase.setInstallmentQuantity(pagtoFinanciamentoRQ.getPagtoFinanciamento().getQtParcelas()); // EXISTE UMA CHAMADA GET A FIM DE OBTER O VALOR MÁXIMO DE PARCELAS
-//            purchase.setTravelDate();  RETORNAR A DATA DE VIAGEM (OBRIGATÓRIO - TURISMO) - VERIFICAR COMO OBTER O WSRESERVA PARA COLETAR INFORMAÇÕES
-            purchase.setSubsegment(0); // NÃO EXISTE NA DOC REFERENCIA PARA REALIZAR A CHAMADA GET PARA OBTER O CÓDIGO A SER INFORMADO - AVISAR SANTANDER
-            purchase.setValue(pagtoFinanciamentoRQ.getPagtoFinanciamento().getVlFinanciado());
+            purchase.setFinancedObject(financedObject.getId()); // ID Financed Object
+            
+            if(pagtoMeioFinanciamento.getVlEntrada() != null) {
+                purchase.setEntryValue(pagtoMeioFinanciamento.getVlEntrada()); // Valor de Entrada
+            }
+            
+            if(pagtoMeioFinanciamento.getVlParcela() != null) {
+                purchase.setInstallmentValue(pagtoMeioFinanciamento.getVlParcela()); // Valor das Parcelas
+            }
+            
+            if(pagtoMeioFinanciamento.getQtdParcelas() != null) {
+                purchase.setInstallmentQuantity(pagtoMeioFinanciamento.getQtdParcelas()); // N° Parcelas
+            }
+            
+            purchase.setSubsegment(Integer.parseInt(subSegment.getCode()));
+            purchase.setValue(pagtoMeioFinanciamento.getVlTotalCompra());
+            
         } catch (Exception ex) {
-            throw new ErrorException(integrador, SimularWS.class, "montaPurchase", WSMensagemErroEnum.ADI, "Erro ao obter os valores para realizar a Pré-Analise.", WSIntegracaoStatusEnum.ATENCAO, ex);
+            throw new ErrorException(integrador, SimularWS.class, 
+                    "montaPurchase", WSMensagemErroEnum.ADI, "Erro ao obter os valores para realizar a Pré-Analise.", WSIntegracaoStatusEnum.ATENCAO, ex);
         }
 
         return purchase;
     }
 
-    private Customer montaCustomer(WSIntegrador integrador, WSPagtoFinanciamentoRQ pagtoFinanciamentoRQ) throws ErrorException {
-        WSCliente cliente = null;
-        if(UtilsWS.verificarCliente(integrador, pagtoFinanciamentoRQ.getPagtoFinanciamento().getCliente())){
-            cliente = pagtoFinanciamentoRQ.getPagtoFinanciamento().getCliente();
+    private Customer montaCustomer(WSIntegrador integrador, WSCliente cliente) throws ErrorException {
+        WSCliente clienteRetorno = null;
+        if(UtilsWS.verificarCliente(integrador, cliente)){
+            clienteRetorno = cliente;
         }
 
-        return new Customer(Utils.formatData(cliente.getDtNascimento(), "yyyy-MM-dd'T'HH:mm:ssz"),
-                            cliente.getDocumento().getNrDocumento(),
-                            new CellPhone(cliente.getTelefone().getNrDDD(), cliente.getTelefone().getNrTelefone()));
+        return new Customer(Utils.formatData(clienteRetorno.getDtNascimento(), "yyyy-MM-dd'T'HH:mm:ssz"),
+                            clienteRetorno.getDocumento().getNrDocumento(),
+                            new CellPhone(clienteRetorno.getTelefone().getNrTelefone().substring(0, 1), 
+                                          clienteRetorno.getTelefone().getNrTelefone().substring(2, clienteRetorno.getTelefone().getNrTelefone().length() -1)));
+    }
+
+//    private List<WSPagtoForma> retornaFormasPagto(WSIntegrador integrador) throws ErrorException {
+//        List<ProductCodeRS> productCodeRSList = santanderClient.retornarProductCode(integrador);
+//        
+//        List<WSPagtoForma> pagtoFormaList = new ArrayList<>();
+//        productCodeRSList.stream()
+//                .map(pc -> {
+//                    WSPagtoForma formaPagto = null;
+//                    if(pc.getDescription().contains("BOLETO")){
+//                        WSPagtoBoleto boleto = new WSPagtoBoleto();
+//                        boleto.setIdExterno(String.valueOf(pc.getId()));
+//                        boleto.setDsPagamento(pc.getDescription());
+//                        formaPagto = (WSPagtoForma) boleto;
+//                    } else {
+//                        WSPagtoCartaoDebito debito = new WSPagtoCartaoDebito();
+//                        debito.setIdExterno(String.valueOf(pc.getId()));
+//                        debito.setDsPagamento(pc.getDescription());
+//                        formaPagto = (WSPagtoForma) debito;
+//                    }
+//                    return formaPagto;
+//                }).forEachOrdered( forma -> {
+//                    pagtoFormaList.add(forma);
+//                });
+//           
+//        return pagtoFormaList != null && !Utils.isListNothing(pagtoFormaList) ? pagtoFormaList : null;
+//    }
+    
+    private WSPagtoForma verificaFormaPagtoCliente(WSIntegrador integrador, PreAnaliseRS preAnaliseRS) throws ErrorException{
+        WSPagtoForma pagtoForma = null;
+        try {
+            PaymentForm payment = null;
+            boolean correntista = preAnaliseRS.getAtxResponse().getAccountHolder();
+            
+            if(correntista){
+                payment = preAnaliseRS.getAtxResponse().getPaymentForms().stream()
+                        .filter(fp -> fp.getIntegrationCode().equals("DC"))
+                        .findFirst()
+                        .orElse(null);
+                if(payment != null){
+                    pagtoForma.setDsPagamento(payment.getDescription());
+                    pagtoForma.setPagtoFormaEntrada(new WSPagtoCartaoDebito());
+                }
+            } else {
+                payment = preAnaliseRS.getAtxResponse().getPaymentForms().stream()
+                        .filter(fp -> fp.getIntegrationCode().equals("CA"))
+                        .findFirst()
+                        .orElse(null);
+                if(payment != null){
+                    pagtoForma.setDsPagamento(payment.getDescription());
+                    pagtoForma.setPagtoFormaEntrada(new WSPagtoBoleto());
+                }
+            }
+            if(payment == null){
+                throw new ErrorException(integrador, SimularWS.class, 
+                    "verificaFormaPagtoCliente", WSMensagemErroEnum.ADI, "Erro ao obter um valor válido de Tipo de Pagamento.", WSIntegracaoStatusEnum.ATENCAO, null, false);
+            }
+        } catch(Exception ex) {
+            throw new ErrorException(integrador, SimularWS.class, 
+                    "verificaFormaPagtoCliente", WSMensagemErroEnum.ADI, "Erro ao obter as Formas de Pagamento do Fornecedor.", WSIntegracaoStatusEnum.ATENCAO, ex, false);
+        }
+        
+        return pagtoForma;
     }
 }

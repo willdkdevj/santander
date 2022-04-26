@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import static br.com.infotera.common.util.Utils.gson;
+import org.springframework.boot.info.BuildProperties;
 
 @RestController
 public class SantanderController {
@@ -29,11 +30,14 @@ public class SantanderController {
 
     @Autowired
     private SimularWS simularWS;
+    
+    @Autowired
+    private BuildProperties build;
 
     @RequestMapping(value = "/ola", method = RequestMethod.GET)
     @ResponseBody
     public String ola() {
-//        return "Hello " + build.getName().toUpperCase() + " - Version: " + build.getVersion();
+        return "Hello " + build.getName().toUpperCase() + " - Version: " + build.getVersion();
     }
 
 //    @RequestMapping(value = "/conciliarBoleto", method = RequestMethod.POST)
@@ -126,20 +130,20 @@ public class SantanderController {
 //        return (gson.toJson(result));
 //    }
 
-    @RequestMapping(value = "/confirmarFinanciamento", method = RequestMethod.POST)
-    public String confirmarFinanciamento(@RequestBody String jsonRQ) {
-        WSPagtoFinanciamentoConfirmarRS result = null;
-        WSPagtoFinanciamentoConfirmarRQ wsRQ = gson.fromJson(jsonRQ, WSPagtoFinanciamentoConfirmarRQ.class);
-        wsRQ.getIntegrador().setDsMetodo("confirmarFinanciamento");
-        try {
-            result = confirmarWS.confirmarPropostaFinanciamento(wsRQ);
-        } catch (ErrorException ex) {
-            result = new WSPagtoFinanciamentoConfirmarRS(ex.getIntegrador(), null);
-        } finally {
-            LogWS.gerarLog(result.getIntegrador(), jsonRQ, false);
-        }
-        return (gson.toJson(result));
-    }
+//    @RequestMapping(value = "/confirmarFinanciamento", method = RequestMethod.POST)
+//    public String confirmarFinanciamento(@RequestBody String jsonRQ) {
+//        WSPagtoFinanciamentoConfirmarRS result = null;
+//        WSPagtoFinanciamentoConfirmarRQ wsRQ = gson.fromJson(jsonRQ, WSPagtoFinanciamentoConfirmarRQ.class);
+//        wsRQ.getIntegrador().setDsMetodo("confirmarFinanciamento");
+//        try {
+//            result = confirmarWS.confirmarPropostaFinanciamento(wsRQ);
+//        } catch (ErrorException ex) {
+//            result = new WSPagtoFinanciamentoConfirmarRS(ex.getIntegrador(), null);
+//        } finally {
+//            LogWS.gerarLog(result.getIntegrador(), jsonRQ, false);
+//        }
+//        return (gson.toJson(result));
+//    }
 
 //    @RequestMapping(value = "/cancelaFinanciamento", method = RequestMethod.POST)
 //    public String cancelarFinanciamento(@RequestBody String jsonRQ) {
@@ -156,18 +160,18 @@ public class SantanderController {
 //        return (gson.toJson(result));
 //    }
 
-    @RequestMapping(value = "/consultar", method = RequestMethod.POST)
-    public String consultar(@RequestBody String jsonRQ) {
-        WSPagtoFinanciamentoRS result = null;
-        WSPagtoFinanciamentoRQ wsRQ = gson.fromJson(jsonRQ, WSPagtoFinanciamentoRQ.class);
-        wsRQ.getIntegrador().setDsMetodo("consultar");
-        try {
-            result = consultarWS.consulta(wsRQ);
-        } catch (ErrorException ex) {
-            result = new WSPagtoFinanciamentoRS(ex.getIntegrador(), null);
-        } finally {
-            LogWS.gerarLog(result.getIntegrador(), jsonRQ, false);
-        }
-        return (gson.toJson(result));
-    }
+//    @RequestMapping(value = "/consultar", method = RequestMethod.POST)
+//    public String consultar(@RequestBody String jsonRQ) {
+//        WSPagtoFinanciamentoRS result = null;
+//        WSPagtoFinanciamentoRQ wsRQ = gson.fromJson(jsonRQ, WSPagtoFinanciamentoRQ.class);
+//        wsRQ.getIntegrador().setDsMetodo("consultar");
+//        try {
+//            result = consultarWS.consulta(wsRQ);
+//        } catch (ErrorException ex) {
+//            result = new WSPagtoFinanciamentoRS(ex.getIntegrador(), null);
+//        } finally {
+//            LogWS.gerarLog(result.getIntegrador(), jsonRQ, false);
+//        }
+//        return (gson.toJson(result));
+//    }
 }

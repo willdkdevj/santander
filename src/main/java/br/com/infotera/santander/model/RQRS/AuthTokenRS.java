@@ -1,25 +1,27 @@
 package br.com.infotera.santander.model.RQRS;
 
+import br.com.infotera.santander.model.Store;
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 
 public class AuthTokenRS {
 
     @SerializedName("access_token")
     private String accessToken;
 
+    @SerializedName("refresh_token")
+    private String refreshToken;
+    
     @SerializedName("token_type")
     private String tokenType;
 
     @SerializedName("expires_in")
     private String expiresIn;
 
+    @SerializedName("stores")
+    private List<Store> stores;
+    
     public AuthTokenRS() {
-    }
-
-    public AuthTokenRS(String accessToken, String tokenType, String expiresIn) {
-        this.accessToken = accessToken;
-        this.tokenType = tokenType;
-        this.expiresIn = expiresIn;
     }
 
     public String getAccessToken() {
@@ -45,4 +47,21 @@ public class AuthTokenRS {
     public void setExpiresIn(String expiresIn) {
         this.expiresIn = expiresIn;
     }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public List<Store> getStores() {
+        return stores;
+    }
+
+    public void setStores(List<Store> stores) {
+        this.stores = stores;
+    }
+    
 }

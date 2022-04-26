@@ -2,34 +2,61 @@ package br.com.infotera.santander.model;
 
 public class Address {
 
-    private String zipCode;
-
-    private String street;
-
-    private String number;
-
-    private String complement;
-
-    private String neighborhood;
-
-    private String state;
-
-    private Integer city;
-
+    private String id;
+    private String proposalId;
+    private String clientId;
     private String type;
+    private Boolean mainFlag;
+    private String zipCode;
+    private String state;
+    private String cityId;
+    private String city;
+    private String neighborhood;
+    private String streetTypeId;
+    private String street;
+    private String number;
 
     public Address() {
     }
 
-    public Address(String zipCode, String street, String number, String complement, String neighborhood, String state, Integer city, String type) {
-        this.zipCode = zipCode;
-        this.street = street;
-        this.number = number;
-        this.complement = complement;
-        this.neighborhood = neighborhood;
-        this.state = state;
-        this.city = city;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getProposalId() {
+        return proposalId;
+    }
+
+    public void setProposalId(String proposalId) {
+        this.proposalId = proposalId;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
         this.type = type;
+    }
+
+    public Boolean getMainFlag() {
+        return mainFlag;
+    }
+
+    public void setMainFlag(Boolean mainFlag) {
+        this.mainFlag = mainFlag;
     }
 
     public String getZipCode() {
@@ -38,6 +65,46 @@ public class Address {
 
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(String cityId) {
+        this.cityId = cityId;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getNeighborhood() {
+        return neighborhood;
+    }
+
+    public void setNeighborhood(String neighborhood) {
+        this.neighborhood = neighborhood;
+    }
+
+    public String getStreetTypeId() {
+        return streetTypeId;
+    }
+
+    public void setStreetTypeId(String streetTypeId) {
+        this.streetTypeId = streetTypeId;
     }
 
     public String getStreet() {
@@ -55,44 +122,5 @@ public class Address {
     public void setNumber(String number) {
         this.number = number;
     }
-
-    public String getComplement() {
-        return complement;
-    }
-
-    public void setComplement(String complement) {
-        this.complement = complement;
-    }
-
-    public String getNeighborhood() {
-        return neighborhood;
-    }
-
-    public void setNeighborhood(String neighborhood) {
-        this.neighborhood = neighborhood;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public Integer getCity() {
-        return city;
-    }
-
-    public void setCity(Integer city) {
-        this.city = city;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
+    
 }

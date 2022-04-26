@@ -1,30 +1,34 @@
 package br.com.infotera.santander.model;
 
+import java.util.List;
+
 public class Error {
 
-    private String status; // ": "BAD_REQUEST",
+    private List<Message> messages; // "message": "this is a generic technical exception. Please contact {0} and {1}."
+    private String statusCode; // " 400
     private String timestamp; // "timestamp": "14-05-2021 01:17:00",
-    private String debugMessage; //"debugMessage": "Unexpected error",
-    private String message; //"message": "Verifique o contrato de envio, não foi possível fazer a conversão do valor null",
-    private String code; //"code": 400
+    private String path; // "/register/person",
+    private String errorId; // "badrequest.saveproposal.person",
+    private String severity; // "ERROR",
+    private String type; // "BUSINESS"
 
     public Error() {
     }
 
-    public Error(String status, String timestamp, String debugMessage, String message, String code) {
-        this.status = status;
-        this.timestamp = timestamp;
-        this.debugMessage = debugMessage;
-        this.message = message;
-        this.code = code;
+    public List<Message> getMessages() {
+        return messages;
     }
 
-    public String getStatus() {
-        return status;
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public String getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(String statusCode) {
+        this.statusCode = statusCode;
     }
 
     public String getTimestamp() {
@@ -35,27 +39,36 @@ public class Error {
         this.timestamp = timestamp;
     }
 
-    public String getDebugMessage() {
-        return debugMessage;
+    public String getPath() {
+        return path;
     }
 
-    public void setDebugMessage(String debugMessage) {
-        this.debugMessage = debugMessage;
+    public void setPath(String path) {
+        this.path = path;
     }
 
-    public String getMessage() {
-        return message;
+    public String getErrorId() {
+        return errorId;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setErrorId(String errorId) {
+        this.errorId = errorId;
     }
 
-    public String getCode() {
-        return code;
+    public String getSeverity() {
+        return severity;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setSeverity(String severity) {
+        this.severity = severity;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
 }

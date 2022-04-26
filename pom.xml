@@ -3,11 +3,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.6.2</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
     <groupId>br.com.infotera.santander</groupId>
     <artifactId>santander</artifactId>
     <version>1.0.0</version>
-    <name>santander</name>
+    <name>santander-financiamento</name>
     <description>Projeto de API para webservice de transações para Pagamentos via boletos</description>
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -17,10 +22,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -52,7 +53,7 @@
             <artifactId>resteasy-client</artifactId>
             <version>3.12.1.Final</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>2.12.5</version>
@@ -65,7 +66,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.12.5</version>
+            <version>2.12.5</version>-->
         </dependency>
         <dependency>
             <groupId>br.com.infotera.it</groupId>
@@ -104,7 +105,7 @@
                         </goals>
                     </execution>
                 </executions>
-                <!-- <configuration>
+                 <configuration>
                     <archive>
                         <manifest>
                             <mainClass>br.com.infotera.santander.SantanderApplication</mainClass>
@@ -113,7 +114,7 @@
                             </addDefaultImplementationEntries>
                         </manifest>
                     </archive>
-                </configuration> -->
+                </configuration> 
             </plugin>
         </plugins>
     </build>

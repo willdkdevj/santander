@@ -1,34 +1,74 @@
 package br.com.infotera.santander.model.RQRS;
 
-import java.util.UUID;
+import br.com.infotera.santander.model.Form;
 
 public class IntegrationCodeRS {
 
-    private Integer tabId;
-
-    private UUID uuid;
+    private Integer id;
+    private String code;
+    private String desc;
+    private Form subsegment;
+    private Boolean isEnabledForStore;
+    private Boolean isEnabledForSalesman;
+    private Boolean isEnabledForClientType;
 
     public IntegrationCodeRS() {
     }
 
-    public IntegrationCodeRS(Integer tabId, UUID uuid) {
-        this.tabId = tabId;
-        this.uuid = uuid;
+    public Integer getId() {
+        return id;
     }
 
-    public Integer getTabId() {
-        return tabId;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
-    public void setTabId(Integer tabId) {
-        this.tabId = tabId;
+    public String getCode() {
+        return code;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public void setCode(String code) {
+        this.code = code;
     }
 
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+    public String getDesc() {
+        return desc;
     }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public Form getSubsegment() {
+        return subsegment;
+    }
+
+    public void setSubsegment(Form subsegment) {
+        this.subsegment = subsegment;
+    }
+
+    public Boolean getIsEnabledForStore() {
+        return isEnabledForStore;
+    }
+
+    public void setIsEnabledForStore(Boolean isEnabledForStore) {
+        this.isEnabledForStore = isEnabledForStore;
+    }
+
+    public Boolean getIsEnabledForSalesman() {
+        return isEnabledForSalesman;
+    }
+
+    public void setIsEnabledForSalesman(Boolean isEnabledForSalesman) {
+        this.isEnabledForSalesman = isEnabledForSalesman;
+    }
+
+    public Boolean getIsEnabledForClientType() {
+        return isEnabledForClientType;
+    }
+
+    public void setIsEnabledForClientType(Boolean isEnabledForClientType) {
+        this.isEnabledForClientType = isEnabledForClientType;
+    }
+    
 }

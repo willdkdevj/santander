@@ -1,15 +1,11 @@
 package br.com.infotera.santander.model.RQRS;
 
-import com.google.gson.annotations.SerializedName;
-
 public class AuthTokenRQ {
 
-    @SerializedName("username")
     private String username;
-
-    @SerializedName("password")
     private String password;
-
+    private String storeId;
+    
     public AuthTokenRQ() {
     }
 
@@ -33,4 +29,13 @@ public class AuthTokenRQ {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getStoreId() {
+        return storeId;
+    }
+
+    public void setStoreId(String storeId) {
+        this.storeId = storeId;
+    }
+    
 }

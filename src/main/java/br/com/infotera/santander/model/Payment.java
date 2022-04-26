@@ -2,56 +2,57 @@ package br.com.infotera.santander.model;
 
 public class Payment {
 
-    private Double downPayment;
-
-    private String firstPaymentDate;
-
+    private Double entryValue;
+    private Double financedValue;
+    private Boolean hasInsurance;
+    private Integer insuranceId;
+    private String registrationFeeType;
     private Integer installmentAmount;
-
-    private Double installmentValue;
-
-    private String modality;
-
-    private String coupon;
-
-    private Integer paymentFormId;
-
-    private String agency;
-
-    private String account;
-
-    private Double totalValue;
+    private String paymentPlan;
+    private String firstInstallmentDueDate;
+    private String billShippingOptions;
 
     public Payment() {
     }
 
-    public Payment(Double downPayment, String firstPaymentDate, Integer installmentAmount, Double installmentValue, String modality, String coupon, Integer paymentFormId, String agency, String account, Double totalValue) {
-        this.downPayment = downPayment;
-        this.firstPaymentDate = firstPaymentDate;
-        this.installmentAmount = installmentAmount;
-        this.installmentValue = installmentValue;
-        this.modality = modality;
-        this.coupon = coupon;
-        this.paymentFormId = paymentFormId;
-        this.agency = agency;
-        this.account = account;
-        this.totalValue = totalValue;
+    public Double getEntryValue() {
+        return entryValue;
     }
 
-    public Double getDownPayment() {
-        return downPayment;
+    public void setEntryValue(Double entryValue) {
+        this.entryValue = entryValue;
     }
 
-    public void setDownPayment(Double downPayment) {
-        this.downPayment = downPayment;
+    public Double getFinancedValue() {
+        return financedValue;
     }
 
-    public String getFirstPaymentDate() {
-        return firstPaymentDate;
+    public void setFinancedValue(Double financedValue) {
+        this.financedValue = financedValue;
     }
 
-    public void setFirstPaymentDate(String firstPaymentDate) {
-        this.firstPaymentDate = firstPaymentDate;
+    public Boolean getHasInsurance() {
+        return hasInsurance;
+    }
+
+    public void setHasInsurance(Boolean hasInsurance) {
+        this.hasInsurance = hasInsurance;
+    }
+
+    public Integer getInsuranceId() {
+        return insuranceId;
+    }
+
+    public void setInsuranceId(Integer insuranceId) {
+        this.insuranceId = insuranceId;
+    }
+
+    public String getRegistrationFeeType() {
+        return registrationFeeType;
+    }
+
+    public void setRegistrationFeeType(String registrationFeeType) {
+        this.registrationFeeType = registrationFeeType;
     }
 
     public Integer getInstallmentAmount() {
@@ -62,59 +63,28 @@ public class Payment {
         this.installmentAmount = installmentAmount;
     }
 
-    public Double getInstallmentValue() {
-        return installmentValue;
+    public String getPaymentPlan() {
+        return paymentPlan;
     }
 
-    public void setInstallmentValue(Double installmentValue) {
-        this.installmentValue = installmentValue;
+    public void setPaymentPlan(String paymentPlan) {
+        this.paymentPlan = paymentPlan;
     }
 
-    public String getModality() {
-        return modality;
+    public String getFirstInstallmentDueDate() {
+        return firstInstallmentDueDate;
     }
 
-    public void setModality(String modality) {
-        this.modality = modality;
+    public void setFirstInstallmentDueDate(String firstInstallmentDueDate) {
+        this.firstInstallmentDueDate = firstInstallmentDueDate;
     }
 
-    public String getCoupon() {
-        return coupon;
+    public String getBillShippingOptions() {
+        return billShippingOptions;
     }
 
-    public void setCoupon(String coupon) {
-        this.coupon = coupon;
+    public void setBillShippingOptions(String billShippingOptions) {
+        this.billShippingOptions = billShippingOptions;
     }
-
-    public Integer getPaymentFormId() {
-        return paymentFormId;
-    }
-
-    public void setPaymentFormId(Integer paymentFormId) {
-        this.paymentFormId = paymentFormId;
-    }
-
-    public String getAgency() {
-        return agency;
-    }
-
-    public void setAgency(String agency) {
-        this.agency = agency;
-    }
-
-    public String getAccount() {
-        return account;
-    }
-
-    public void setAccount(String account) {
-        this.account = account;
-    }
-
-    public Double getTotalValue() {
-        return totalValue;
-    }
-
-    public void setTotalValue(Double totalValue) {
-        this.totalValue = totalValue;
-    }
+    
 }

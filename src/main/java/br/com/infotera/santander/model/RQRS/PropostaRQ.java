@@ -1,47 +1,59 @@
 package br.com.infotera.santander.model.RQRS;
 
-import br.com.infotera.santander.model.Customer;
-
-import java.util.UUID;
+import br.com.infotera.santander.model.AdditionalInformation;
+import br.com.infotera.santander.model.Address;
+import br.com.infotera.santander.model.CertifiedAgent;
+import br.com.infotera.santander.model.Person;
 
 public class PropostaRQ {
 
-    private Customer customer;
-
-    private String ip;
-
-    private UUID uuid;
+    private CertifiedAgent certifiedAgent;
+    private Person person;
+    private Address address;
+    private AdditionalInformation additionalInformation;
+    private Boolean flagIgnoreStageConfirmation;
 
     public PropostaRQ() {
     }
 
-    public PropostaRQ(Customer customer, String ip, UUID uuid) {
-        this.customer = customer;
-        this.ip = ip;
-        this.uuid = uuid;
+    public CertifiedAgent getCertifiedAgent() {
+        return certifiedAgent;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public void setCertifiedAgent(CertifiedAgent certifiedAgent) {
+        this.certifiedAgent = certifiedAgent;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public Person getPerson() {
+        return person;
     }
 
-    public String getIp() {
-        return ip;
+    public void setPerson(Person person) {
+        this.person = person;
     }
 
-    public void setIp(String ip) {
-        this.ip = ip;
+    public Address getAddress() {
+        return address;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+    public AdditionalInformation getAdditionalInformation() {
+        return additionalInformation;
     }
+
+    public void setAdditionalInformation(AdditionalInformation additionalInformation) {
+        this.additionalInformation = additionalInformation;
+    }
+
+    public Boolean getFlagIgnoreStageConfirmation() {
+        return flagIgnoreStageConfirmation;
+    }
+
+    public void setFlagIgnoreStageConfirmation(Boolean flagIgnoreStageConfirmation) {
+        this.flagIgnoreStageConfirmation = flagIgnoreStageConfirmation;
+    }
+    
 }
