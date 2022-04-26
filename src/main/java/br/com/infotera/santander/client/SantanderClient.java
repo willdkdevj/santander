@@ -17,6 +17,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -31,13 +32,14 @@ public class SantanderClient {
     public WSSessao abrirSessao(WSIntegrador integrador, AuthTokenRQ authToken) throws ErrorException {
         AuthTokenRS result = null;
         WSSessao sessao = null;
-
+        String storeId = null;
+        
         try {
             // Chamada para obter os códigos (StoreID)
             result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "auth", AuthTokenRS.class);
-            if(!Utils.isListNothing(result.getStores())){
+            if(result.getStores() != null && !Utils.isListNothing(result.getStores())){
                 // Verifica o retorno dos códigos 
-                String storeId = result.getStores().stream()
+                storeId = result.getStores().stream()
                         .filter(store -> store.getName().equalsIgnoreCase("turismo"))
                         .findFirst()
                         .orElse(null)
@@ -47,14 +49,16 @@ public class SantanderClient {
                     authToken.setStoreId(storeId);
                     // Chamada para obter o access token (Bearer)
                     result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "auth", AuthTokenRS.class);
+                    
+                    // Criação de sessão após o retorno da segunda chamada
+                    sessao = new WSSessao(storeId, integrador.getIdEmpresa(), result.getAccessToken(), new Date(), null);
                 } else {
                     throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.ADI, "Erro ao obter o código (StoreID) referente ao tipo de negócio. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
                 }
             } else {
                 throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.ADI, "Erro ao obter os códigos (StoreID) para o cliente. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
             }
-            // Criação de sessão após o retorno da segunda chamada
-            sessao = new WSSessao(result.getTokenType(), integrador.getIdEmpresa(), result.getAccessToken(), new Date(), null);
+            
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
@@ -67,12 +71,27 @@ public class SantanderClient {
     }
 
     public IntegrationCodeRS identificarTab(WSIntegrador integrador) throws ErrorException {
+        List result = null;
         String codigoIntegra = null;
-        IntegrationCodeRS result = null;
+        IntegrationCodeRS integrationCode = null;
 
         try {
-            codigoIntegra = integrador.getDsCredencialList().get(3);
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "code"+ "/" + codigoIntegra, IntegrationCodeRS.class);
+            codigoIntegra = integrador.getSessao().getCdChave();
+            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "domains"+ "/" + "products"+ "/" + codigoIntegra, List.class);
+            
+            List<IntegrationCodeRS> listCode = new ArrayList();
+            
+            for (int i = 0; i < result.size(); i++) {
+                JsonObject object = gson.toJsonTree(result.get(i)).getAsJsonObject();
+                integrationCode = gson.fromJson(object, IntegrationCodeRS.class);
+                listCode.add(integrationCode);
+            }
+            
+            integrationCode = listCode.stream()
+                    .filter(code -> code.getCode().equals("CSC"))
+                    .findFirst()
+                    .get();
+            
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
@@ -81,7 +100,7 @@ public class SantanderClient {
             throw new ErrorException(integrador, RESTClient.class, "Erro ao retornar o Código TAB (IntegrationCode)", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
-        return result;
+        return integrationCode;
     }
 
     public TermosCondicoesRS retornarTermosCondicoes(WSIntegrador integrador) throws ErrorException {

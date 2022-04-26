@@ -1,4 +1,4 @@
-# Santander API 
+# Santander Financiamento API 
 > API consiste em uma ponte ao fluxo de processos pagamentos eletrônicos através de boletos e financiamento para clientes e não clientes do Banco Santander.
 
 [![Spring Badge](https://img.shields.io/badge/-Spring-brightgreen?style=flat-square&logo=Spring&logoColor=white&link=https://spring.io/)](https://spring.io/)
@@ -110,8 +110,40 @@ Desta forma, o retorno sendo satisfatório será o TOKEN *Transacional* que vali
 }
 ```
 
-> **NOTA:** *O TOKEN Transacional permanece ativo até o tempo apontado em *expires_in* (segundos), na qual ao expirar será necessário realizar uma nova chamada para autenticação*.
+> **NOTA:** *O TOKEN Transacional (Bearer) permanece ativo até o tempo apontado em *expires_in* (segundos), na qual ao expirar será necessário realizar uma nova chamada para autenticação*.
 
+## Verificar Produtos
+O fornecedor devolve quais são os produtos disponibilizado para cliente, onde para continuar com o fluxo de financiamento, se faz necessário invocar o *endpoint* de domínios (*Domains*) para listá-los. Desta forma, é necessário realizar uma requisição (GET) com a identificação da loja (lojaID - StoreID) retornado na primeira chamada em *token*.
+```json
+[
+  {
+    "id": 358,
+    "code": "CDC",
+    "desc": "Crédito Direto ao Consumidor",
+    "subsegment": {
+      "id": 33,
+      "code": "350",
+      "type": "Máquinas e Equipamentos"
+    },
+    "isEnabledForStore": true,
+    "isEnabledForSalesman": false,
+    "isEnabledForClientType": "PF"
+  },
+  {
+    "id": 359,
+    "code": "CSC",
+    "desc": "Cessão",
+    "subsegment": {
+      "id": 33,
+      "code": "350",
+      "type": "Máquinas e Equipamentos"
+    },
+    "isEnabledForStore": true,
+    "isEnabledForSalesman": false,
+    "isEnabledForClientType": "BOTH"
+  }
+]
+```
 
 ## Código de Requisições Santander
 Para realizar a pré-analise e a análise de proposta, o Santander requisita algumas informações que são padronizadas por eles. Desta forma, nas requisições são passados parâmetros numerais ou em formato UUID que são obtidos através de chamadas auxiliares ao fornecedor. 
