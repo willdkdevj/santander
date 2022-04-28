@@ -4,7 +4,7 @@
 [![Spring Badge](https://img.shields.io/badge/-Spring-brightgreen?style=flat-square&logo=Spring&logoColor=white&link=https://spring.io/)](https://spring.io/)
 [![Maven Badge](https://img.shields.io/badge/-Maven-000?style=flat-square&logo=Apache-Maven&logoColor=white&link=https://maven.apache.org/)](https://maven.apache.org/)
 [![Gson Badge](https://img.shields.io/badge/-Gson-informational?style=flat-square&logo=Google&logoColor=white&link=https://sites.google.com/site/gson/)](https://sites.google.com/site/gson/)
-[![Jackson Badge](https://img.shields.io/badge/-Jackson-blueviolet?style=flat-square&logo=Jackson&logoColor=white&link=https://github.com/FasterXML/jackson/)](https://github.com/FasterXML/jackson/)
+[![Jackson Badge](https://img.shields.io/badge/-Jackson-blueviolet?style=flat-square&logo=GitHub&logoColor=white&link=https://github.com/FasterXML/jackson/)](https://github.com/FasterXML/jackson/)
 
 <img align="right" width="200" height="150" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/santander-banner.jpeg">
 
@@ -114,7 +114,7 @@ Desta forma, o retorno sendo satisfatório será o TOKEN *Transacional* que vali
 ```
 
 ### Formulário Codificado (Form-Encoded)
-O método de autenticação utiliza um formulário codificado (*Form-Encoded*) a fim de passar parâmetros que identifiquem o client no formato Auth 2.0. Para este fim, foi necessário utilizar o ***ObjectMapper (Jackson)*** possibilita utilizar a funcionalidade para leitura e escrita JSON, tanto de elementos para POJOs básicos (Plain Old Java Objects), ou de elementos para um Modelo de Árvore JSON de uso geral (*JsonNode*). 
+O método de autenticação utiliza um formulário codificado (*Form-Encoded*) a fim de passar parâmetros que identifiquem o cliente através do protocolo padrão **OAuth 2.0**. Para este fim, foi necessário utilizar o ***ObjectMapper (Jackson)*** possibilita utilizar a funcionalidade para leitura e escrita JSON, tanto de elementos para POJOs básicos (*Plain Old Java Objects*), ou de elementos para um Modelo de Árvore JSON de uso geral (*JsonNode*). 
 Desta forma, como o ObjectMapper é personalizável foi implementada a classe auxiliar *ObjectUrlEncodedConverter*, para converter os parâmetros do formulário para os valores esperados pelo fornecedor, utilizando as funcionalidades avançadas de serialização e desserialização das classes ObjectReader e ObjectWriter. O Mapper (e ObjectReaders, ObjectWriters que constrói) usará instâncias da JsonParser e JsonGenerator para implementar a leitura/escrita do JSON.
 O objetivo da criação desta classe é montar o formulário através da passagem de um objeto, denominado FormEncoded, que passará os parâmetros para o *HttpEntity* no *Rest Template* ao injetado no ***MessageConverters***.
 
