@@ -27,21 +27,21 @@ import java.util.List;
 @Component
 public class SimularWS {
 
-//    @Autowired
-//    private SessaoWS sessaoWS;
-//
-//    @Autowired
-//    private SantanderClient santanderClient;
-//
-//    public WSPagtoAnaliseRS simularFinanciamento(WSPagtoAnaliseRQ pagtoAnaliseRQ) throws ErrorException {
-//        WSIntegrador integrador = null;
-//        if (pagtoAnaliseRQ.getIntegrador().getSessao() == null) {
-//            integrador = sessaoWS.abreSessao(pagtoAnaliseRQ.getIntegrador());
-//        } else {
-//            integrador = pagtoAnaliseRQ.getIntegrador();
-//        }
-//        
-//        // Chamada para obter o Código da Loja (ID Loja) - Deve ser realizada nova chamada para obter novo código, caso seja feita nova análise
+    @Autowired
+    private SessaoWS sessaoWS;
+
+    @Autowired
+    private SantanderClient santanderClient;
+
+    public WSPagtoAnaliseRS simularFinanciamento(WSPagtoAnaliseRQ pagtoAnaliseRQ) throws ErrorException {
+        WSIntegrador integrador = null;
+        if (pagtoAnaliseRQ.getIntegrador().getSessao() == null) {
+            integrador = sessaoWS.abreSessao(pagtoAnaliseRQ.getIntegrador());
+        } else {
+            integrador = pagtoAnaliseRQ.getIntegrador();
+        }
+        
+        // Chamada para obter o Código da Loja (ID Loja) - Deve ser realizada nova chamada para obter novo código, caso seja feita nova análise
 //        IntegrationCodeRS integrationCode = santanderClient.identificarTab(integrador);
 //        
 //        // Retorna a quantidade máxima de parcelas para o estabelecimento (StoreId) (VERIFICAR SE SERÁ ENVIADO NO MESMO PARÂMETRO OU SE SERÁ CRIADO OUTRO)
@@ -53,9 +53,9 @@ public class SimularWS {
 ////        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setFormasPagtoList(pagtoFormaList);
 //
 //        WSPagtoMeioFinanciamento pagtoMeioFinanciamento = montaPagtoMeioFinanciamento(integrador, integrationCode, pagtoAnaliseRQ);
-//
-//        return new WSPagtoAnaliseRS(integrador, pagtoMeioFinanciamento, pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente(), WSIntegracaoStatusEnum.OK);
-//    }
+
+        return null; //new WSPagtoAnaliseRS(integrador, pagtoMeioFinanciamento, pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente(), WSIntegracaoStatusEnum.OK);
+    }
 //
 //    private WSPagtoMeioFinanciamento montaPagtoMeioFinanciamento(WSIntegrador integrador, IntegrationCodeRS integrationCode, WSPagtoAnaliseRQ pagtoAnaliseRQ) throws ErrorException {
 //        // Obtem dados do cliente para requisição

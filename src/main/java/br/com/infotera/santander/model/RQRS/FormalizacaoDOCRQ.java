@@ -6,7 +6,7 @@ package br.com.infotera.santander.model.RQRS;
 
 import br.com.infotera.santander.model.Client;
 import br.com.infotera.santander.model.Proposal;
-
+import br.com.infotera.santander.model.Terms;
 /**
  *
  * @author William Dias

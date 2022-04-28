@@ -70,11 +70,11 @@ public class SantanderController {
 //        return (gson.toJson(result));
 //    }
 
-    @RequestMapping(value = "/simularFinanciamento", method = RequestMethod.POST)
+    @RequestMapping(value = "/simular", method = RequestMethod.POST)
     public String simularFinanciamento(@RequestBody String jsonRQ) throws ErrorException {
         WSPagtoFinanciamentoRQ wsRQ = gson.fromJson(jsonRQ, WSPagtoFinanciamentoRQ.class);
         WSPagtoFinanciamentoRS result = null;
-        wsRQ.getIntegrador().setDsMetodo("simularFinanciamento");
+        wsRQ.getIntegrador().setDsMetodo("simular");
         try {
 //            result = simularWS.simularFinanciamento(wsRQ);
         } catch (Exception ex) {

@@ -17,7 +17,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -33,10 +32,12 @@ public class SantanderClient {
         AuthTokenRS result = null;
         WSSessao sessao = null;
         String storeId = null;
+        integrador.setDsAction("token");
         
         try {
             // Chamada para obter os códigos (StoreID)
             result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "auth", AuthTokenRS.class);
+            sessao = new WSSessao(result.getTokenType(), integrador.getIdEmpresa(), result.getAccessToken(), new Date(), null);
             if(result.getStores() != null && !Utils.isListNothing(result.getStores())){
                 // Verifica o retorno dos códigos 
                 storeId = result.getStores().stream()
@@ -55,9 +56,9 @@ public class SantanderClient {
                 } else {
                     throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.ADI, "Erro ao obter o código (StoreID) referente ao tipo de negócio. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
                 }
-            } else {
-                throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.ADI, "Erro ao obter os códigos (StoreID) para o cliente. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
-            }
+            } //else {
+//                throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.ADI, "Erro ao obter os códigos (StoreID) para o cliente. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
+//            }
             
         } catch(ErrorException e) {
             throw e;
@@ -74,10 +75,11 @@ public class SantanderClient {
         List result = null;
         String codigoIntegra = null;
         IntegrationCodeRS integrationCode = null;
-
+        integrador.setDsAction("products");
+        
         try {
             codigoIntegra = integrador.getSessao().getCdChave();
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "domains"+ "/" + "products"+ "/" + codigoIntegra, List.class);
+            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "products"+ "/" + codigoIntegra, List.class);
             
             List<IntegrationCodeRS> listCode = new ArrayList();
             
@@ -105,9 +107,10 @@ public class SantanderClient {
 
     public TermosCondicoesRS retornarTermosCondicoes(WSIntegrador integrador) throws ErrorException {
         TermosCondicoesRS result = null;
-
+        integrador.setDsAction("list-terms");
+        
         try {
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "domains"+ "/" + "list-terms", TermosCondicoesRS.class);
+            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "list-terms", TermosCondicoesRS.class);
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
@@ -121,12 +124,13 @@ public class SantanderClient {
     
     public PreAnaliseRS retornarTermosLGPD(WSIntegrador integrador, String numberDoc) throws ErrorException {
         PreAnaliseRS result = null;
-
+        integrador.setDsAction("consent-register");
+        
         try {
             PreAnaliseRQ preAnalise = new PreAnaliseRQ();
             preAnalise.setDocumentNumber(numberDoc);
             
-            result = restClient.sendReceive(integrador, preAnalise, HttpMethod.POST, "domains"+ "/" + "consent-register", PreAnaliseRS.class);
+            result = restClient.sendReceive(integrador, preAnalise, HttpMethod.POST, "consent-register", PreAnaliseRS.class);
             
         } catch(ErrorException e) {
             throw e;
@@ -139,54 +143,6 @@ public class SantanderClient {
         return result;
     }
     
-    public FinancedObjectRS retornarFinancedObject(WSIntegrador integrador, Integer storeId) throws ErrorException {
-        List result = null;
-        FinancedObjectRS financedObjectRS = null;
-        
-        try {
-            FinancedObjectRQ financedObjectRQ = new FinancedObjectRQ(storeId);
-            result = restClient.sendReceive(integrador, financedObjectRQ, HttpMethod.GET, "store" + "/" + String.valueOf(financedObjectRQ.getId()) + "/" + "financed-objects", List.class);
-            
-            JsonObject jsonObject = gson.toJsonTree(result.get(0)).getAsJsonObject();
-            financedObjectRS = gson.fromJson(jsonObject, FinancedObjectRS.class);
-        } catch(ErrorException e) {
-            throw e;
-        } catch (Exception ex) {
-            integrador.setDsMensagem(ex.getMessage());
-            integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao retornar o Código TAB (IntegrationCode)", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
-        }
-        
-        if(financedObjectRS == null) {
-            integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao obter o Código do Objeto Financiado! Entrar em contato com o suporte", WSMensagemErroEnum.ADI, null, WSIntegracaoStatusEnum.NEGADO, null, false);
-        }
-        
-        return financedObjectRS;
-    }
-
-    public SubSegmentRS retornarSubSegment(WSIntegrador integrador, Integer storeId) throws ErrorException {
-        SubSegmentRS result = null;
-
-        try {
-            SubSegmentRQ subSegmentRQ = new SubSegmentRQ(storeId);
-            result = restClient.sendReceive(integrador, subSegmentRQ, HttpMethod.GET, "subsegment" + "/" + String.valueOf(subSegmentRQ.getStoreId()), SubSegmentRS.class);
-        } catch(ErrorException e) {
-            throw e;
-        } catch (Exception ex) {
-            integrador.setDsMensagem(ex.getMessage());
-            integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao retornar o Código de SubSegmento (SubSegment)", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
-        }
-        
-        if(result == null) {
-            integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao obter o Código do Segmento do Negócio! Entrar em contato com o suporte", WSMensagemErroEnum.ADI, null, WSIntegracaoStatusEnum.NEGADO, null, false);
-        }
-        
-        return result;
-    }
-
     public InstallmentAmountRS retornarParcelas(WSIntegrador integrador, Integer storeID) throws ErrorException {
         List result = null;
         InstallmentAmountRS installmentAmountRS = null;

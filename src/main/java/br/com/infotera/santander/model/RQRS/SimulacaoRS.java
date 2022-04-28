@@ -386,5 +386,5 @@ public class SimulacaoRS {
     public void setSimulationData(Simulation simulationData) {
         this.simulationData = simulationData;
     }
-    
+
 }

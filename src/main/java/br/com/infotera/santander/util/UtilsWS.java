@@ -7,22 +7,29 @@ import br.com.infotera.common.enumerator.WSIntegracaoStatusEnum;
 import br.com.infotera.common.enumerator.WSMensagemErroEnum;
 import br.com.infotera.common.enumerator.WSTelefoneTipoEnum;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.PrintWriter;
 
 public class UtilsWS {
 
-    public String geraArquivo(InputStream content) {
-        int read = 0;
-        byte[] bytes = new byte[4096];
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            while ((read = content.read(bytes)) != -1) {
-                baos.write(bytes, 0, read);
-            }
-            return new String(org.apache.commons.codec.binary.Base64.encodeBase64(baos.toByteArray()));
+    public static void geraArquivo(String saida, String caminho, String nomeFile) {
+        File diretorio = new File(caminho);
+        File arqSaida = new File(diretorio, nomeFile);
+
+        try {
+            boolean statusArq = arqSaida.createNewFile();
+            System.out.print(statusArq);
+
+            FileWriter writer = new FileWriter(arqSaida, false);
+            PrintWriter printer = new PrintWriter(writer);
+            printer.println(saida);
+
+            printer.flush();
+            printer.close();
         } catch (IOException e) {
-            throw new RuntimeException("Unable to convert content stream to base 64 encoded string", e);
+            e.printStackTrace();
         }
     }
 

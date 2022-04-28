@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author William Dias
  */
-class Terms {
+public class Terms {
     
     private String id;
     private String code;

@@ -16,7 +16,7 @@ public class SessaoWS {
 
     public WSIntegrador abreSessao(WSIntegrador integrador) throws ErrorException {
         //BUSCA SESSAO DISPONIVEL
-        AuthTokenRQ authToken = new AuthTokenRQ(integrador.getDsCredencialList().get(0), integrador.getDsCredencialList().get(1));
+        AuthTokenRQ authToken = new AuthTokenRQ(integrador.getDsCredencialList().get(2), integrador.getDsCredencialList().get(3));
 
         WSSessao sessao = santanderClient.abrirSessao(integrador, authToken);
         integrador.setSessao(sessao);

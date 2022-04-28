@@ -58,6 +58,7 @@ Os frameworks são pacotes de códigos prontos que facilita o desenvolvimento de
 | Gson                | 2.8.2     |
 | RestEasy            | 3.12.1    |
 
+
 ## Sobre a Estrutura da REST API (VirtusPay)
 O *Webwservice* recebe as *request* via REST POST/PUT/GET, na qual sua estrutura segue o padrão (JSON). Abaixo segue as bibliotecas utilizadas neste projeto a fim de dar embasamento ao código a ser implementado para criação do *webservice*.
 
@@ -109,8 +110,8 @@ Desta forma, o retorno sendo satisfatório será o TOKEN *Transacional* que vali
   "expires_in": "3600"
 }
 ```
-
 > **NOTA:** *O TOKEN Transacional (Bearer) permanece ativo até o tempo apontado em *expires_in* (segundos), na qual ao expirar será necessário realizar uma nova chamada para autenticação*.
+
 
 ## Verificar Produtos
 O fornecedor devolve quais são os produtos disponibilizado para cliente, onde para continuar com o fluxo de financiamento, se faz necessário invocar o *endpoint* de domínios (*Domains*) para listá-los. Desta forma, é necessário realizar uma requisição (GET) com a identificação da loja (lojaID - StoreID) retornado na primeira chamada em *token*.
@@ -145,53 +146,47 @@ O fornecedor devolve quais são os produtos disponibilizado para cliente, onde p
 ]
 ```
 
+
 ## Código de Requisições Santander
 Para realizar a pré-analise e a análise de proposta, o Santander requisita algumas informações que são padronizadas por eles. Desta forma, nas requisições são passados parâmetros numerais ou em formato UUID que são obtidos através de chamadas auxiliares ao fornecedor. 
 
 A tabela abaixo descreve a função,descrição e onde é requisitada pelo fornecedor, na qual utilizando o protocolo HTTP (GET) a fim de retornar os valores necessários.
 
-|    Função    | Descrição                                |   Requisição    |
-|:------------:|:----------------------------------------:|:---------------:|
-| Identificar TAB | Serviço de utilizado para retornar o id da loja/tab a ser utilizada através da pesquisa pelo seu código de TAB | Pré Analise / Simulação / Proposta / Obj Financiado / Qtd Parcelas |
-| Obj Financiado | Serviço de domínio que retorna os produtos (objetos financiado) relacionados à TAB | Pré-Analise |
-| SubSegmento | Serviço destinado ao retorno dos subsegmentos atribuídos à TAB cadastrada nas bases do Santander | Pré-Analise |
-| Qtd Parcelas | Serviço de domínio que retorna a quantidade máxima de parcelas que são disponíveis para TAB informada  | Pré-Analise |
-| Formas de Pagto | Serviço de domínio que retorna a lista de Formas de Pagamentos disponíveis para a operação de acordo com o produto | Simulação |
-| Profissões | Serviço de domínio que retorna a lista de Categorias/profissões utilizadas na captura da proposta | |
-| Estado Cívil | Serviço de domínio que retorna a lista de Estados Civis disponíveis para a utilização na captura da proposta | |
-| Naturalidade | Serviço de domínio que a partir da pesquisa por UF, retorna a lista de municípios | |
-| 
+|    Função    | Descrição                                | Protocolo |   Requisição    |
+|:------------:|:----------------------------------------:|:---------:|:---------------:|
+| Products | Serviço utilizado para retornar os produtos de negócio disponibilizado pelo fornecedor a fim de obter seu código para as chamadas as suas funcionalidades | GET | Pré Analise |
+| List-Terms | Retorna os termos e condições a serem aprovados para o quitante, referente aos produtos disponibilidados ao cliente, para dar continuidade ao fluxo de pagamento | GET | Pré-Analise |
+| Consent-Register | Retorna os termos de políticas da Lei Geral de Proteção de Dados (LGPD - Lei n°13.853) a fim de ser acordada com o quitante para dar continuidade ao fluxo de pagamento | POST | Pré-Analise |
+| Simulation | Cria uma requisição para encaminhar uma simulação com dados do quitante e os aceites dos termos | POST | Simulação |
+| ProposalID | Verifica se a proposta foi encaminhada e as formas de pagamento possíveis disponibilizadas para o quitante | GET | Simulação |
+| Finish | Finaliza a simulação encaminhando uma requisição com a proposta a ser aprovada pelo fornecedor | POST | Simulação |
+| Register | Registra a proposta no fornecedor obtendo o retorno do que foi acordado com o fornecedor | GET | Proposta |
+| Save | Realiza o envio da proposta para análise de fraude e geração do checklist, em caso de erro na requisição, precisará efetuar nova chamada em *Register* [domains/register/{idProposal}] para obter os dados atualizados, porque os dados podem ser salvo de forma parcial | POST | Proposta | 
+| Check-List | Retorna a lista dos documentos necessários para firmar a proposta ao encaminhar seu número de identificação | POST | Proposta | 
+| Upload-Documents | Realiza o envio do arquivo dos documentos digitalizados do quitante | POST | Proposta | 
+| Formalization | Realiza a geração do link para a Assinatura Digital | POST | Proposta | 
+| Formalization-Finish | Realiza a finalização da etapa de formalização do quitante | POST | Proposta | 
 
+> **NOTA:** *Se uma **Proposta** estiver em andamento e outra simulação for realizada, a Proposta em andamento será **CANCELADA***.
 
-
-> **NOTA:** *O objeto OtherInfo são parâmetros solicitado pelo fornecedor (Virtus Pay), desta forma, é obrigatório sua passagem para permitir que a autenticação seja avaliada. Caso contrário, o fornecedor não permitirá a continuação do fluxo de pagamento pelo webservice*.
-
-
-**Documentação Oficial da API:** [VirtusPay Support](https://documenter.getpostman.com/view/215460/SVSPnmLs#intro)
+| Credencial | Valores |
+|:------:|:------:|
+| Usuário | 09551043000130 |
+| Senha | InfssteR@@2569 |
+**Documentação Oficial da API:** [Santander - Accenture](https://brpiosantanderhml.viverebrasil.com.br/devportal/apis)
 
 
 ### Ambientes
-Para acesso aos ambientes (*Homologação/Produção*) da VirtusPay se faz necessário a criação de uma conta pelo suporte técnico, na qual estes ambientes são totalmente distintos um do outro, pois seus endpoints são diferentes. Desta forma, a criação de uma não implica na criação da outra, sendo necessário solicitar uma conta especifica para o ambiente a ser utilizado.
+Para acesso aos ambientes (*Homologação/Produção*) da Santander Accenture se faz necessário a criação de uma conta pelo suporte técnico, na qual estes ambientes são totalmente distintos um do outro, pois seus endpoints são diferentes. Desta forma, a criação de uma não implica na criação da outra, sendo necessário solicitar uma conta especifica para o ambiente a ser utilizado.
 
 |    Ambientes    |	         Endpoints             |
 |:---------------:|:------------------------------:|
-|  *HOMOLOGAÇÃO*  | https://hml.usevirtus.com.br/api/   |
-|  *PRODUÇÃO*	  | https://core.usevirtus.com.br/api/  |
+|  *HOMOLOGAÇÃO*  | https://brpiosantanderapihml.viverebrasil.com.br/   |
+|  *PRODUÇÃO*	  | https://brpiosantanderapi.viverebrasil.com.br/  |
 
 
 ### Limites e Restrições
-Com o objetivo de ampliar o acesso ao crédito, o VirtusPay possibilita que os usuários paguem suas compras seguindo alguns critérios para este fim, na qual o webservice deve se atentar para não haver inconsistências no estado das ordens. São elas:
-
-1. São aceitas ordens apenas maiores de idade, CPF sem restrições, com RG ou CNH em dia; 
-2. São parceladas apenas uma compra por vez por CPF;
-3. A compra deve ter valor mínimo de R$ 150,00 e máximo de R$ 10.000,00;
-4. O cliente pode escolher entre 3 a 15 parcelas, a depender do valor da compra;
-5. A Data de vencimento do boleto parcelado será referente a data de aprovação do seu crédito.
-
-Quanto a integração entre os webservices também temos alguns limites e restrições, no manuseio a ser aplicado para possibilitar uma interação sadia entre os mesmos. São elas:
-* Já na primeira chamada ao webservice (PreApproved) é realizada uma análise ao perfil do cliente cadastrado em sua plataforma, na qual determina o range de opções para parcelamento de sua compra. Desta forma, ao ser aprovada é disponibilizado um ***valor a ser quitado em um prazo de 24 hrs***, no parâmetro *down_payment* (Valor de Entrada);
-* Ao realizar a chamada ao método para realizar um cancelamento (Order/[ID Transaction]/void) é possível selecionar dois tipos de reembolso (*Refund By*), o TED e o ORPAG. O primeiro obriga a passagem de parâmetros adicionais como Dados Bancários (*Extra Data*) do cliente, que terá o Valor Parcial (*Amount*) ou Total, onde o amount poderá ser omitido, a ser devolvido em Conta Bancária;
-* O fornecedor (Virtus Pay) permite a atualização das propostas encaminhadas a sua plataforma através de *Impulso API* ou *Comunicação Passiva*, através de um **Webhook**, isto é possível ao informar no parâmetro **callback**, onde será o ponto de acesso ao insumo a ser atualizado, evitando assim a necessidade de periodicamente realizar uma consulta a fim de atualizar o *status* de uma proposta ou *status* do processamento de um cancelamento de proposta. Desta forma, ***o sistema realizará 3 tentativas de notificação com intervalo de 30min caso o “HTTP response status code” seja diferente de “200” [OK]***;
+;
 
 
 ### Definição de Formatos
@@ -213,7 +208,7 @@ A tabela abaixo apresenta os parâmetros e seus respectivos valores, como tipo, 
 
 |  Nome   |    Tipo    |   Tamanho   | Obrigatório | Descrição                                      |
 |:-------:|:----------:|:-----------:|:-----------:|:----------------------------------------------:|
-|  data   |    Date    |    (24)     |     Sim     | Formato do tipo Data recebido em parâmetros nas classes |
+|  data   |   String    |    (24)     |     Sim     | Formato do tipo Data recebido em parâmetros nas classes |
 |   cpf   |   String   |    (11)	 |     Sim     | CPF do Cliente*. Exemplo: “11122233344”        |
 |cellphone|	  String   |    (11)	 |     Sim	   | Número do Celular com DDD do Cliente*. Exemplo: "21988889999" |
 |  email  |   String   |             |     Sim	   | E-mail do Cliente*. Exemplo: “email@email.com.br” |
@@ -222,7 +217,6 @@ A tabela abaixo apresenta os parâmetros e seus respectivos valores, como tipo, 
 
 
 ### As Funcionalidades do WebService
-
 Toda a chamada ao webservice se faz necessário de se autenticar a fim de ser autorizado a trafegar informações entre os *webservices*, desta forma, é passado em toda requisição (*request*) o autorizador (Authorization Token) do tipo *Token*, que é encaminhado no cabeçalho (*header*) do envelopamento SOAP, a fim de ser validado pelo webservice da Virtus Pay a fim de validar o cliente que deseja acessar a plataforma.
 
 A funcionalidade de Pré-Aprovação (***PreApproved***) tem a função de autorizar o acesso a plataforma e também ao analisar os dados enviados sobre o cliente a fim de determinar as condições a qual ele tem acesso pela mesma. Desta forma, caso seu cadastro seja aprovado é encaminhado um range de opções de parcelamento, a qual ele tem possibilidade de parcelar o valor de compra informado.
