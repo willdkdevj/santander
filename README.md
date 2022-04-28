@@ -4,6 +4,7 @@
 [![Spring Badge](https://img.shields.io/badge/-Spring-brightgreen?style=flat-square&logo=Spring&logoColor=white&link=https://spring.io/)](https://spring.io/)
 [![Maven Badge](https://img.shields.io/badge/-Maven-000?style=flat-square&logo=Apache-Maven&logoColor=white&link=https://maven.apache.org/)](https://maven.apache.org/)
 [![Gson Badge](https://img.shields.io/badge/-Gson-informational?style=flat-square&logo=Google&logoColor=white&link=https://sites.google.com/site/gson/)](https://sites.google.com/site/gson/)
+[![Jackson Badge](https://img.shields.io/badge/-Jackson-informational?style=flat-square&logo=Google&logoColor=white&link=https://sites.google.com/site/gson/)](https://github.com/FasterXML/jackson/)
 
 <img align="right" width="200" height="150" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/santander-banner.jpeg">
 
@@ -56,6 +57,7 @@ Os frameworks são pacotes de códigos prontos que facilita o desenvolvimento de
 | Spring Boot         | 2.6.2     |
 | IT Common           | 1.9.14.0  |
 | Gson                | 2.8.2     |
+| Jackson             | 2.7.0     |
 | RestEasy            | 3.12.1    |
 
 
@@ -110,6 +112,35 @@ Desta forma, o retorno sendo satisfatório será o TOKEN *Transacional* que vali
   "expires_in": "3600"
 }
 ```
+
+### Formulário Codificado (Form-Encoded)
+O método de autenticação utiliza um formulário codificado (*Form-Encoded*) a fim de passar parâmetros que identifiquem o client no formato Auth 2.0. Para este fim, foi necessário utilizar o ***ObjectMapper (Jackson)*** possibilita utilizar a funcionalidade para leitura e escrita JSON, tanto de elementos para POJOs básicos (Plain Old Java Objects), ou de elementos para um Modelo de Árvore JSON de uso geral (*JsonNode*). 
+Desta forma, como o ObjectMapper é personalizável foi implementada a classe auxiliar *ObjectUrlEncodedConverter*, para converter os parâmetros do formulário para os valores esperados pelo fornecedor, utilizando as funcionalidades avançadas de serialização e desserialização das classes ObjectReader e ObjectWriter. O Mapper (e ObjectReaders, ObjectWriters que constrói) usará instâncias da JsonParser e JsonGenerator para implementar a leitura/escrita do JSON.
+O objetivo da criação desta classe é montar o formulário através da passagem de um objeto, denominado FormEncoded, que passará os parâmetros para o *HttpEntity* no *Rest Template* ao injetado no ***MessageConverters***.
+
+<img align="middle" width="600" height="50" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/injecao_mapper.jpeg">
+
+Instância da classe FormEncoded para passá-la como formulário codificado em HttpEntity:
+```java
+  private FormEncoded montarFormUrl(WSIntegrador integrador, AuthTokenRQ authToken) throws ErrorException{
+      FormEncoded form = new FormEncoded();
+      try {
+          form.setGrantType("password");
+          form.setUsername(authToken.getUsername());
+          form.setPassword(authToken.getPassword());
+          form.setBusinessCode(2);
+          form.setLoginTypeId(9);
+          form.setTpLoginCode(8);
+          form.setStoreId(authToken.getStoreId() != null && Utils.isNumerico(authToken.getStoreId()) ? Integer.parseInt(authToken.getStoreId()) : null);
+          form.setRevokeSession(Boolean.TRUE);
+      } catch (NumberFormatException e) {
+          throw new ErrorException(integrador, RESTClient.class, "montarFormUrl", WSMensagemErroEnum.GENVAL, 
+                  "Erro ao montar formulário (FormEncoded)" + e.getMessage(), WSIntegracaoStatusEnum.NEGADO, e, false);
+      }
+      return form;
+  }
+```
+
 > **NOTA:** *O TOKEN Transacional (Bearer) permanece ativo até o tempo apontado em *expires_in* (segundos), na qual ao expirar será necessário realizar uma nova chamada para autenticação*.
 
 
