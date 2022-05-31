@@ -216,13 +216,6 @@ A tabela abaixo descreve a função,descrição e onde é requisitada pelo forne
 
 > **NOTA:** *Se uma **Proposta** estiver em andamento e outra simulação for realizada, a Proposta em andamento será **CANCELADA***.
 
-| Credencial | Valores |
-|:------:|:------:|
-| Usuário | 09551043000130 |
-| Senha | InfssteR@@2569 |
-**Documentação Oficial da API:** [Santander - Accenture](https://brpiosantanderhml.viverebrasil.com.br/devportal/apis)
-
-
 ### Ambientes
 Para acesso aos ambientes (*Homologação/Produção*) da Santander Accenture se faz necessário a criação de uma conta pelo suporte técnico, na qual estes ambientes são totalmente distintos um do outro, pois seus endpoints são diferentes. Desta forma, a criação de uma não implica na criação da outra, sendo necessário solicitar uma conta especifica para o ambiente a ser utilizado.
 
@@ -317,9 +310,14 @@ A tabela abaixo contém os possíveis status de retorno.
 | 404 | Not Found     | Serviço não encontrado. | Tentar novamente mais tarde. |
 | 429 | Too Many Requests | O usuário enviou muitas solicitações em um determinado período (limitação de taxa) | Tentar novamente mais tarde. |
 | 500 | Internal Server Error| O servidor encontrou uma situação com a qual não sabe lidar. (Erro no servidor) | Reportar o erro para o time tecnico. |
-| 503 | Service Unavailable | O servidor não está pronto para manipular a requisição. Causas comuns são um servidor em
-manutenção ou sobrecarregado. |  Tentar novamente mais tarde |
+| 503 | Service Unavailable | O servidor não está pronto para manipular a requisição. Causas comuns são um servidor em manutenção ou sobrecarregado. |  Tentar novamente mais tarde |
 | 504 | Gateway Timeout | Esta resposta de erro é dada quando o servidor está atuando como um gateway e não obtém uma resposta a tempo | Tentar novamente mais tarde |
 
 ## Suporte Técnico
-O contato para suporte disponível é através de endereço eletrônico [atendimento@usevirtus.com.br](atendimento@usevirtus.com.br), na qual não é apontado prazos para SLA e horários para atendimento.
+O contato para suporte disponível é através de endereço eletrônico [atendimento@santander.com.br](https://brpiosantanderhml.viverebrasil.com.br/devportal/apis), na qual não é apontado prazos para SLA e horários para atendimento.
+
+| Credencial | Valores |
+|:------:|:------:|
+| Usuário | 09551043000130 |
+| Senha | InfssteR@@2569 |
+**Documentação Oficial da API:** [Santander - Accenture](https://brpiosantanderhml.viverebrasil.com.br/devportal/apis)
