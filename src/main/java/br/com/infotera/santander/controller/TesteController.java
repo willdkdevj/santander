@@ -41,8 +41,8 @@ public class TesteController {
         try {
             System.out.println("ENTROU TESTE");
             List<String> dsCredencialList = new ArrayList();
-            dsCredencialList.add("QZylsfyU5FpHE0Wwnfhzvo1vzEEa");// Consumer Key
-            dsCredencialList.add("OwrzUbVfWiJcowMIGkFSejHVr3sa"); // Consumer Secret
+            dsCredencialList.add("PxGBW_2TqW9tKQMAJPkflpFLfhUa");//("QZylsfyU5FpHE0Wwnfhzvo1vzEEa");// Consumer Key
+            dsCredencialList.add("hdnoGypmxWneD52ZwnaDxuaaZT4a");//("OwrzUbVfWiJcowMIGkFSejHVr3sa"); // Consumer Secret
             dsCredencialList.add("09551043000130"); // Username
             dsCredencialList.add("InfssteR@@2569");// Password
             WSIntegrador integrador = new WSIntegrador(WSEmpresaEnum.INFOTERA.getId(), "", WSIntegradorEnum.SANTANDER, "BRL", 30, WSAmbienteEnum.HOMOLOGACAO, dsCredencialList);

@@ -37,6 +37,8 @@ um contrato de prestação de serviços ou fornecimento de mercadorias. Para efe
 
 4. Formalização do Produto - A formalização entre o Cliente e o intermediário (Cedente) é feita através da Ficha Cadastral para alguns intermediários autorizados pelo Superintendentes de Rede, os mesmos são responsáveis pela guarda dos documentos de formalização com as devidas responsabilidades formalizadas em aditamento ao credenciamento (conceito de fiel depositário).
 
+Em resumo, o produto consiste na consessão de crédito para a Santander Financiamentos com o consentimento do cliente final. É uma
+opção de parcelamento sem juros para o cliente final e com custo financeiro para o lojista, na qual o lojista e a fábrica recebem o valor total ou parcial da operação (descontada apenas a retenção da operação), conforme acordo previamente definido. 
 
 ### Descrição da Aplicação
 O objetivo desta aplicação é servir de base para a utilização das chamadas aos serviços disponibilizados ao projeto INTEGRA, denominação aplicada ao projeto elaborado para desenvolver os serviços relacionados ao processo de pré-análise, simulação, envio de proposta, consulta e cancelamento de Propostas de CSC (ou Ordens) geradas na plataforma, referente ao produto Santander +Vezes (Financiamentos).
@@ -61,7 +63,7 @@ Os frameworks são pacotes de códigos prontos que facilita o desenvolvimento de
 | RestEasy            | 3.12.1    |
 
 
-## Sobre a Estrutura da REST API (VirtusPay)
+## Sobre a Estrutura da REST API (Santander - Accenture)
 O *Webwservice* recebe as *request* via REST POST/PUT/GET, na qual sua estrutura segue o padrão (JSON). Abaixo segue as bibliotecas utilizadas neste projeto a fim de dar embasamento ao código a ser implementado para criação do *webservice*.
 
 | Framework           |   Tipo    |
@@ -78,7 +80,7 @@ Modelo de Requisição REST utilizando os parâmetros Authentication Bearer e *C
 ## Processo de Autenticação (TOKEN)
 O fornecedor disponibiliza ao cliente credenciais no formato usuário e senha (*username/password*) na qual devem ser trata a fim de gerar um *TOKEN* **(Base64)**. A chamada ao *endpoint* se faz através de um formulário codificado (*form-urlencoded*) que encaminhará uma requisição do tipo POST, com o parâmetro **storeId** com o valor nulo (*null*) a fim de obter a lista de códigos de negócio disponibilidado para o cliente, denominado de *identificação da loja ou lojaID (StoreID)*.
 
-<img align="middle" width="600" height="500" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/processo_autenticacao.jpeg">
+<img align="middle" width="600" height="450" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/processo_autenticacao.jpeg">
 
 Caso o retorno seja satisfatório, é retornado uma lista de código de negócios onde para o tipo de serviço que disponibilizamos é buscado o código correspondente a ***Turismo*** a fim de utilizar o seu identificador para as demais chamadas, e na chamada subsequente ao *endpoint (token)* desta vez é passado o id localizado, referente ao tipo de negócio, ao parâmetro **storeId** do formulário, para obtermos o *TOKEN* de validação da sessão do usuário.
 
@@ -114,7 +116,7 @@ Desta forma, o retorno sendo satisfatório será o TOKEN *Transacional* que vali
 ```
 
 ### Formulário Codificado (Form-Encoded)
-O método de autenticação utiliza um formulário codificado (*Form-Encoded*) a fim de passar parâmetros que identifiquem o cliente através do protocolo padrão **OAuth 2.0**. Para este fim, foi necessário utilizar o ***ObjectMapper (Jackson)*** possibilita utilizar a funcionalidade para leitura e escrita JSON, tanto de elementos para POJOs básicos (*Plain Old Java Objects*), ou de elementos para um Modelo de Árvore JSON de uso geral (*JsonNode*). 
+O método de autenticação utiliza um formulário codificado (*Form-Encoded*) a fim de passar parâmetros que identifiquem o cliente através do protocolo padrão **OAuth 2.0**. Para este fim, foi necessário utilizar o ***ObjectMapper (Jackson)*** que possibilita utilizar a funcionalidade de leitura e escrita JSON, tanto de elementos para POJOs básicos (*Plain Old Java Objects*), quanto para elementos de um Modelo de Árvore JSON de uso geral (*JsonNode*). 
 Desta forma, como o ObjectMapper é personalizável foi implementada a classe auxiliar *ObjectUrlEncodedConverter*, para converter os parâmetros do formulário para os valores esperados pelo fornecedor, utilizando as funcionalidades avançadas de serialização e desserialização das classes ObjectReader e ObjectWriter. O Mapper (e ObjectReaders, ObjectWriters que constrói) usará instâncias da JsonParser e JsonGenerator para implementar a leitura/escrita do JSON.
 O objetivo da criação desta classe é montar o formulário através da passagem de um objeto, denominado FormEncoded, que passará os parâmetros para o *HttpEntity* no *Rest Template* ao injetado no ***MessageConverters***.
 
@@ -217,8 +219,9 @@ Para acesso aos ambientes (*Homologação/Produção*) da Santander Accenture se
 
 
 ### Limites e Restrições
-;
-
+* O ambiente de homologação é um replicação do ambiente de produção, porém com um universo reduzido de massa e não necessariamente replica as condições de produção;
+* Entre o 1º e 5º dia útilo o ambiente de homologação pode apresentar instabilidades em virtude da atualização dos sistemas;
+* Realizar testes em 6h e 22h, após esse período, o ambiente de homologação também pode apresentar instabildiades;
 
 ### Definição de Formatos
 Para permitir a serialização/deserialização de datas foi necessário implementar a instância do Gson para a passagem de um padrão (**pattern**) a fim de permitir o seu funcionamento. Desta forma, na configuração do Projeto (*VirtusPayConfiguration*) é implementado um Bean a fim de instância-lo ao iniciar o Spring.
@@ -239,7 +242,7 @@ A tabela abaixo apresenta os parâmetros e seus respectivos valores, como tipo, 
 
 |  Nome   |    Tipo    |   Tamanho   | Obrigatório | Descrição                                      |
 |:-------:|:----------:|:-----------:|:-----------:|:----------------------------------------------:|
-|  data   |   String    |    (24)     |     Sim     | Formato do tipo Data recebido em parâmetros nas classes |
+|  data   |   String   |    (8)     |     Sim     | Formato do tipo Data recebido em parâmetros nas classes |
 |   cpf   |   String   |    (11)	 |     Sim     | CPF do Cliente*. Exemplo: “11122233344”        |
 |cellphone|	  String   |    (11)	 |     Sim	   | Número do Celular com DDD do Cliente*. Exemplo: "21988889999" |
 |  email  |   String   |             |     Sim	   | E-mail do Cliente*. Exemplo: “email@email.com.br” |
@@ -248,7 +251,16 @@ A tabela abaixo apresenta os parâmetros e seus respectivos valores, como tipo, 
 
 
 ### As Funcionalidades do WebService
-Toda a chamada ao webservice se faz necessário de se autenticar a fim de ser autorizado a trafegar informações entre os *webservices*, desta forma, é passado em toda requisição (*request*) o autorizador (Authorization Token) do tipo *Token*, que é encaminhado no cabeçalho (*header*) do envelopamento SOAP, a fim de ser validado pelo webservice da Virtus Pay a fim de validar o cliente que deseja acessar a plataforma.
+Toda a chamada ao *webservice* é necessário realizar a autenticação (***TOKEN***) a fim de ser autorizado e validar suas chamadas aos métodos, desta forma, para concluir este processo de autenticação são necessárias duas chamadas.
+
+<img align="center" width="300" height="200" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/token1.jpeg">
+
+A primeira funcionalidade é realizada sem o parâmetro *StoreID* para obter todos os IDs disponibilizados para o cliente.
+
+<img align="center" width="300" height="200" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/token2.jpeg">
+
+A segunda é obtido o valor do **StoreID** que identifica o cliente e realiza uma nova chamada a fim de obter o token de validação de sessão (*Bearer*). 
+> Nota: O token (*Bearer*) deve ser passado para as demais chamadas enquanto o token não expira.
 
 A funcionalidade de Pré-Aprovação (***PreApproved***) tem a função de autorizar o acesso a plataforma e também ao analisar os dados enviados sobre o cliente a fim de determinar as condições a qual ele tem acesso pela mesma. Desta forma, caso seu cadastro seja aprovado é encaminhado um range de opções de parcelamento, a qual ele tem possibilidade de parcelar o valor de compra informado.
 
@@ -282,32 +294,18 @@ Desta forma, como retorno será obtido as informações atualizadas sobre o esta
 
 
 ### Código de Estados (Request Status)
-As tabelas abaixo contém os possíveis status de retorno.
-A primeira tabela corresponde ao estado de proposta.
-| Status | Descrição |
-|:------:|:---------:|
-| **P** | ***Pendente ->*** o cliente criou um pedido com a VirtusPay porém não seguiu com a jornada de crédito; |
-| **N** | ***Analisada ->*** a proposta se encontra com nossa mesa de crédito; |
-| **A** | ***Aprovada ->*** a proposta foi aprovada por nossa mesa de crédito |
-| **R** | ***Recusada ->*** a proposta foi recusada por nossa mesa de crédito; |
-| **C** | ***Cancelada ->*** a proposta foi cancelada por ficar pendente mais que 48h ou por solicitação da loja/cliente; |
-| **E** | ***Efetivada ->*** o cliente pagou a entrada, portanto o pedido pode ser liberado no sistema; |
-
-
-A segunda tabela corresponde aos estados do processamento de proposta para o cancelamento:
-| Status | Descrição |
-|:------:|:---------:|
-| **PEN** | ***Pendente ->*** o cancelamento ainda não foi concluído, porém solicitado |
-| **ENV** | ***Enviado ->*** o reembolso foi enviado  |
-| **EFE** | ***Efetivado ->*** o reembolso foi finalizado |
-
-A terceira tabela está relacionada ao recurso para verificar o repasse e agenda de repasse. 
-| Status | Descrição |
-|:------:|:---------:|
-| **REA** | ***Realizado ->*** o repasse foi realizado |
-| **CAN** | ***Cancelado ->*** o repasse foi cancelado, isso acontece por exemplo quando cancelamos uma proposta |
-| **AGE** | ***Agendado ->*** o repasse está agendado com data de previsão |
-| **ERR** | ***Erro ->*** O repasse não foi enviado por algum erro, isso pode acontecer por exemplo caso exista alguma inconsistência nos dados bancários da empresa |
+A tabela abaixo contém os possíveis status de retorno.
+| Codigo | Nome       | Descrição                                     | Ação            |
+|:---:|:-------------:|:---------------------------------------------:|:---------------:|
+| 400 | Bad Request   | Essa resposta significa que o servidor não entendeu a requisição pois está com uma sintaxe inválida. (por exemplo, sintaxe de solicitação malformada, enquadramento de mensagem de solicitação inválido). | Conferir os campos da chamada. |
+| 401 | Unauthorized  | Não autenticado. | O cliente deve se autenticar para obter a resposta solicitada.
+| 403 | Forbidden     | O cliente não tem direitos de acesso ao conteúdo portanto o servidor está rejeitando dar a resposta. | Pedir liberação de acesso. |
+| 404 | Not Found     | Serviço não encontrado. | Tentar novamente mais tarde. |
+| 429 | Too Many Requests | O usuário enviou muitas solicitações em um determinado período (limitação de taxa) | Tentar novamente mais tarde. |
+| 500 | Internal Server Error| O servidor encontrou uma situação com a qual não sabe lidar. (Erro no servidor) | Reportar o erro para o time tecnico. |
+| 503 | Service Unavailable | O servidor não está pronto para manipular a requisição. Causas comuns são um servidor em
+manutenção ou sobrecarregado. |  Tentar novamente mais tarde |
+| 504 | Gateway Timeout | Esta resposta de erro é dada quando o servidor está atuando como um gateway e não obtém uma resposta a tempo | Tentar novamente mais tarde |
 
 ## Suporte Técnico
 O contato para suporte disponível é através de endereço eletrônico [atendimento@usevirtus.com.br](atendimento@usevirtus.com.br), na qual não é apontado prazos para SLA e horários para atendimento.

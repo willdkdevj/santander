@@ -35,43 +35,50 @@ public class SantanderClient {
         integrador.setDsAction("token");
         
         try {
-            // Chamada para obter os códigos (StoreID)
-            result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "auth", AuthTokenRS.class);
-            sessao = new WSSessao(result.getTokenType(), integrador.getIdEmpresa(), result.getAccessToken(), new Date(), null);
+            // 1ª Chamada para obter os códigos (StoreID)
+            result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "token", AuthTokenRS.class);
+//            sessao = new WSSessao(result.getTokenType(), integrador.getIdEmpresa(), result.getAccessToken(), new Date(), null);
             if(result.getStores() != null && !Utils.isListNothing(result.getStores())){
                 // Verifica o retorno dos códigos 
                 storeId = result.getStores().stream()
-                        .filter(store -> store.getName().equalsIgnoreCase("turismo"))
+                        .filter(store -> !store.getCode().equals(""))
                         .findFirst()
                         .orElse(null)
                         .getCode();
                 
                 if(storeId != null){
                     authToken.setStoreId(storeId);
-                    // Chamada para obter o access token (Bearer)
-                    result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "auth", AuthTokenRS.class);
+                        
+                    // 2ª Chamada para obter o access token (Bearer)
+                    result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "token", AuthTokenRS.class);
                     
                     // Criação de sessão após o retorno da segunda chamada
-                    sessao = new WSSessao(storeId, integrador.getIdEmpresa(), result.getAccessToken(), new Date(), null);
+                    sessao = new WSSessao();
+                    sessao.setCdChave(storeId);
+                    sessao.setDtInclusao(new Date());
+                    sessao.setIdEmpresa(integrador.getIdEmpresa());
+                    sessao.setDsSessao(result.getAccessToken());
                 } else {
-                    throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.ADI, "Erro ao obter o código (StoreID) referente ao tipo de negócio. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
+                    throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.GENABRSES, 
+                            "Erro ao obter o código (StoreID) referente ao tipo de negócio. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
                 }
-            } //else {
-//                throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.ADI, "Erro ao obter os códigos (StoreID) para o cliente. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
-//            }
-            
+            } else {
+                throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.GENABRSES, 
+                        "Erro ao obter os códigos (StoreID) para o cliente. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
+            }
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.ADI, "Erro ao realizar Autenticação" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.GENABRSES, 
+                    "Erro ao realizar Autenticação" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
         return sessao;
     }
 
-    public IntegrationCodeRS identificarTab(WSIntegrador integrador) throws ErrorException {
+    public IntegrationCodeRS getProductCSC(WSIntegrador integrador) throws ErrorException {
         List result = null;
         String codigoIntegra = null;
         IntegrationCodeRS integrationCode = null;
@@ -81,25 +88,31 @@ public class SantanderClient {
             codigoIntegra = integrador.getSessao().getCdChave();
             result = restClient.sendReceive(integrador, null, HttpMethod.GET, "products"+ "/" + codigoIntegra, List.class);
             
-            List<IntegrationCodeRS> listCode = new ArrayList();
+            List<IntegrationCodeRS> listCode = null;
+            if(result != null){
+                listCode = new ArrayList();
             
-            for (int i = 0; i < result.size(); i++) {
-                JsonObject object = gson.toJsonTree(result.get(i)).getAsJsonObject();
-                integrationCode = gson.fromJson(object, IntegrationCodeRS.class);
-                listCode.add(integrationCode);
+                for (int i = 0; i < result.size(); i++) {
+                    JsonObject object = gson.toJsonTree(result.get(i)).getAsJsonObject();
+                    integrationCode = gson.fromJson(object, IntegrationCodeRS.class);
+                    listCode.add(integrationCode);
+                }
+
+                integrationCode = listCode.stream()
+                        .filter(code -> code.getCode().equals("CSC"))
+                        .findFirst()
+                        .get();
+            } else {
+                throw new ErrorException(integrador, RESTClient.class, "getProductCSC", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao retornar os produtos (Santander - Financiamento) - Entre em contato com o fornecedor", WSIntegracaoStatusEnum.NEGADO, null, false);
             }
-            
-            integrationCode = listCode.stream()
-                    .filter(code -> code.getCode().equals("CSC"))
-                    .findFirst()
-                    .get();
-            
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao retornar o Código TAB (IntegrationCode)", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "getProductCSC", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao retornar o produto CSC (Product CSC)" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
         return integrationCode;
@@ -116,177 +129,141 @@ public class SantanderClient {
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao retornar o Código TAB (IntegrationCode)", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "retornarTermosCondicoes", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao retornar os Termos e Condições para Financiamento " + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
         return result;
     }
     
-    public PreAnaliseRS retornarTermosLGPD(WSIntegrador integrador, String numberDoc) throws ErrorException {
-        PreAnaliseRS result = null;
+    public TermosCondicoesRS retornarTermosLGPD(WSIntegrador integrador, String numberDoc) throws ErrorException {
+        TermosCondicoesRS result = null;
         integrador.setDsAction("consent-register");
         
         try {
-            PreAnaliseRQ preAnalise = new PreAnaliseRQ();
-            preAnalise.setDocumentNumber(numberDoc);
+            TermosCondicoesRQ termoLgpd = new TermosCondicoesRQ();
+            termoLgpd.setDocumentNumber(numberDoc);
             
-            result = restClient.sendReceive(integrador, preAnalise, HttpMethod.POST, "consent-register", PreAnaliseRS.class);
+            result = restClient.sendReceive(integrador, termoLgpd, HttpMethod.POST, "consent-register", TermosCondicoesRS.class);
             
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao retornar o Código TAB (IntegrationCode)", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "retornarTermosLGPD", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao retornar os Termos da Lei Geral de Proteção de Dados (LGPD)" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
         return result;
     }
     
-    public InstallmentAmountRS retornarParcelas(WSIntegrador integrador, Integer storeID) throws ErrorException {
-        List result = null;
-        InstallmentAmountRS installmentAmountRS = null;
+    public SimulacaoRS criarSimulacao(WSIntegrador integrador, SimulacaoRQ simulacaoRQ) throws ErrorException {
+        SimulacaoRS result = null;
 
         try {
-            InstallmentAmountRQ installmentAmountRQ = new InstallmentAmountRQ(storeID);
-            result = restClient.sendReceive(integrador, installmentAmountRQ, HttpMethod.GET, String.valueOf(installmentAmountRQ.getStoreId()) + "/" + "installment-amount", List.class);
+            result = restClient.sendReceive(integrador, simulacaoRQ, HttpMethod.POST, "simulation", SimulacaoRS.class);
             
-            JsonObject jsonObject = gson.toJsonTree(result.get(0)).getAsJsonObject();
-            installmentAmountRS = gson.fromJson(jsonObject, InstallmentAmountRS.class);
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao obter a quantidade máxima de parcelas (StoreID)", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "criarSimulacao", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao criar a simulação para a reserva" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
-        return installmentAmountRS;
+        return result;
     }
 
-    public List<RuleGet> retornarProductCode(WSIntegrador integrador, String idProductCode) throws ErrorException {
-        List result = null;
-        List<RuleGet> productCodeList = new ArrayList<>();
+    public SimulacaoRS buscarProposta(WSIntegrador integrador, String idProductCode) throws ErrorException {
+        SimulacaoRS result = null;
 
         try {
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "forms-payment" + "/" + idProductCode, List.class);
+            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "simulation" + "/" + idProductCode, SimulacaoRS.class);
             
-            result.stream().map(pc -> {
-               JsonObject jsonObject = gson.toJsonTree(pc).getAsJsonObject();
-               RuleGet productCode = gson.fromJson(jsonObject, RuleGet.class);
-               return productCode;
-            }).forEachOrdered(productCode -> {
-                productCodeList.add((RuleGet) productCode);
-            });
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao retornar o Código TAB (IntegrationCode)", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "buscarProposta", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao criar a simulação para a reserva" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
-        return !Utils.isListNothing(productCodeList) ? productCodeList : null;
+        return result;
     }
 
-    public List<DocumentGet> retornarGrupoAtividadeEconomica(WSIntegrador integrador) throws ErrorException {
-        List result = null;
-        List<DocumentGet> atividadeEconomicaList = new ArrayList<>();
+    public SimulacaoRS finalizarSimulacao(WSIntegrador integrador, SimulacaoRQ simulacaoRQ) throws ErrorException {
+        SimulacaoRS result = null;
 
         try {
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "economicActivityGroup", List.class);
+            result = restClient.sendReceive(integrador, simulacaoRQ, HttpMethod.POST, "finish", SimulacaoRS.class);
             
-            result.stream().map(pc -> {
-               JsonObject jsonObject = gson.toJsonTree(pc).getAsJsonObject();
-               DocumentGet document = gson.fromJson(jsonObject, DocumentGet.class);
-               return document;
-            }).forEachOrdered(document -> {
-                atividadeEconomicaList.add((DocumentGet) document);
-            });
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao obter a Lista de Grupos de Atividades Econônicas", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "finalizarSimulacao", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao finalizar o envio da simulação para proposta de financiamento" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
-        return !Utils.isListNothing(atividadeEconomicaList) ? atividadeEconomicaList : null;
+        return result;
     }
     
-    public List<RuleGet> retornarAtividadeEconomica(WSIntegrador integrador, String idGroup) throws ErrorException {
-        List result = null;
-        List<RuleGet> atividadeEconomicaList = new ArrayList<>();
+    public PropostaRS registrarProposta(WSIntegrador integrador, String proposalId) throws ErrorException {
+        PropostaRS result = null;
 
         try {
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "economicActivity" + "/" + idGroup, List.class);
+            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "register" + "/" + proposalId, PropostaRS.class);
             
-            result.stream().map(pc -> {
-               JsonObject jsonObject = gson.toJsonTree(pc).getAsJsonObject();
-               RuleGet productCode = gson.fromJson(jsonObject, RuleGet.class);
-               return productCode;
-            }).forEachOrdered(productCode -> {
-                atividadeEconomicaList.add((RuleGet) productCode);
-            });
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao retornar a Lista de Atividades Econônimicas", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "registrarProposta", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao formalizar simulação (Registro) " + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
-        return !Utils.isListNothing(atividadeEconomicaList) ? atividadeEconomicaList : null;
+        return result;
     }
     
-    public List<DocumentGet> retornarTipoDocumento(WSIntegrador integrador) throws ErrorException {
-        List result = null;
-        List<DocumentGet> documentList = new ArrayList<>();
+    public PropostaRS salvarProposta(WSIntegrador integrador, PropostaRQ propostaRQ) throws ErrorException {
+        PropostaRS result = null;
 
         try {
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "documentType", List.class);
+            result = restClient.sendReceive(integrador, propostaRQ, HttpMethod.POST, "save", PropostaRS.class);
             
-            result.stream().map(pc -> {
-               JsonObject jsonObject = gson.toJsonTree(pc).getAsJsonObject();
-               DocumentGet document = gson.fromJson(jsonObject, DocumentGet.class);
-               return document;
-            }).forEachOrdered(document -> {
-                documentList.add((DocumentGet) document);
-            });
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao obter a lista de Tipos de Documentos", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "salvarProposta", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao salvar o registro da Proposta do Financiamento " + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
-        return !Utils.isListNothing(documentList) ? documentList : null;
+        return result;
     }
 
-    public List<RuleGet> retornarCodOcupacao(WSIntegrador integrador) throws ErrorException {
-        List result = null;
-        List<RuleGet> ocupacaoList = new ArrayList<>();
+    public FormalizacaoDOCRS listarDocumentos(WSIntegrador integrador, FormalizacaoDOCRQ formalizacaoDOCRQ) throws ErrorException {
+        FormalizacaoDOCRS result = null;
 
         try {
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "role", List.class);
+            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "ckeck-list", FormalizacaoDOCRS.class);
             
-            result.stream().map(pc -> {
-               JsonObject jsonObject = gson.toJsonTree(pc).getAsJsonObject();
-               DocumentGet document = gson.fromJson(jsonObject, DocumentGet.class);
-               return document;
-            }).forEachOrdered(document -> {
-                ocupacaoList.add((RuleGet) document);
-            });
         } catch(ErrorException e) {
             throw e;
         } catch (Exception ex) {
             integrador.setDsMensagem(ex.getMessage());
             integrador.setIntegracaoStatus(WSIntegracaoStatusEnum.NEGADO);
-            throw new ErrorException(integrador, RESTClient.class, "Erro ao obter a Lista das Profissões", WSMensagemErroEnum.ADI, ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+            throw new ErrorException(integrador, RESTClient.class, "listarDocumentos", WSMensagemErroEnum.GENCONEC, 
+                    "Erro ao obter as informações dos documentos necessários " + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
-        return !Utils.isListNothing(ocupacaoList) ? ocupacaoList : null;
+        return result;
     }
 
     public List<RuleGet> retornarCodEstadoCivil(WSIntegrador integrador) throws ErrorException {

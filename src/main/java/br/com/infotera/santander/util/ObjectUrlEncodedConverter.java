@@ -26,7 +26,6 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 public class ObjectUrlEncodedConverter implements HttpMessageConverter
 {
     private static final String Encoding = "UTF-8";
-
     private final ObjectMapper mapper;
 
     public ObjectUrlEncodedConverter(ObjectMapper mapper)
@@ -66,7 +65,6 @@ public class ObjectUrlEncodedConverter implements HttpMessageConverter
             String body = mapper
                 .convertValue(o, UrlEncodedWriter.class)
                 .toString();
-
             try
             {
                 outputMessage.getBody().write(body.getBytes(Encoding));
@@ -89,11 +87,9 @@ public class ObjectUrlEncodedConverter implements HttpMessageConverter
             {
                 out.append("&");
             }
-
             out
                 .append(URLEncoder.encode(name, Encoding))
                 .append("=");
-
             if (property != null)
             {
                 out.append(URLEncoder.encode(property.toString(), Encoding));

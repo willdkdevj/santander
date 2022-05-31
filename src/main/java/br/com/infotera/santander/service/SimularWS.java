@@ -1,28 +1,14 @@
 package br.com.infotera.santander.service;
 
 import br.com.infotera.common.ErrorException;
-import br.com.infotera.common.WSCliente;
 import br.com.infotera.common.WSIntegrador;
-import br.com.infotera.common.enumerator.WSIntegracaoStatusEnum;
-import br.com.infotera.common.enumerator.WSMensagemErroEnum;
-import br.com.infotera.common.pagto.WSPagtoBoleto;
-import br.com.infotera.common.pagto.WSPagtoCartaoDebito;
-import br.com.infotera.common.pagto.WSPagtoForma;
-import br.com.infotera.common.pagto.WSPagtoMeioFinanciamento;
-import br.com.infotera.common.pagto.financiamento.WSFinanciamentoParcelas;
 import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoAnaliseRQ;
 import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoAnaliseRS;
-import br.com.infotera.common.util.Utils;
 import br.com.infotera.santander.client.SantanderClient;
-import br.com.infotera.santander.model.*;
 import br.com.infotera.santander.model.RQRS.*;
-import br.com.infotera.santander.util.UtilsWS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 @Component
 public class SimularWS {
@@ -42,16 +28,18 @@ public class SimularWS {
         }
         
         // Chamada para obter o Código da Loja (ID Loja) - Deve ser realizada nova chamada para obter novo código, caso seja feita nova análise
-//        IntegrationCodeRS integrationCode = santanderClient.identificarTab(integrador);
-//        
-//        // Retorna a quantidade máxima de parcelas para o estabelecimento (StoreId) (VERIFICAR SE SERÁ ENVIADO NO MESMO PARÂMETRO OU SE SERÁ CRIADO OUTRO)
-//        InstallmentAmountRS parcelaMax = santanderClient.retornarParcelas(integrador, integrationCode.getTabId());
+        IntegrationCodeRS integrationCode = santanderClient.getProductCSC(integrador);
+        
+        // Retorna a quantidade máxima de parcelas para o estabelecimento (StoreId) (VERIFICAR SE SERÁ ENVIADO NO MESMO PARÂMETRO OU SE SERÁ CRIADO OUTRO)
+        TermosCondicoesRS termosLGPD = santanderClient.retornarTermosLGPD(integrador, pagtoAnaliseRQ.getReserva().getId());
+        TermosCondicoesRS termosCondGeral = santanderClient.retornarTermosCondicoes(integrador);
+        
 //        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setQtdParcelas(Integer.parseInt(parcelaMax.getDescription()));
-//        
-//        // Retorna os tipos de pagamentos permitidos para o cliente
-////        List<WSPagtoForma> pagtoFormaList = retornaFormasPagto(integrador);
-////        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setFormasPagtoList(pagtoFormaList);
-//
+        
+        // Retorna os tipos de pagamentos permitidos para o cliente
+//        List<WSPagtoForma> pagtoFormaList = retornaFormasPagto(integrador);
+//        pagtoAnaliseRQ.getPagtoMeioFinanciamento().setFormasPagtoList(pagtoFormaList);
+
 //        WSPagtoMeioFinanciamento pagtoMeioFinanciamento = montaPagtoMeioFinanciamento(integrador, integrationCode, pagtoAnaliseRQ);
 
         return null; //new WSPagtoAnaliseRS(integrador, pagtoMeioFinanciamento, pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente(), WSIntegracaoStatusEnum.OK);

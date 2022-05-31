@@ -15,8 +15,8 @@ public class FormEncoded {
     private String password;
     private Integer businessCode;
     private Integer loginTypeId;
-    private Integer tpLoginCode;
-    private Integer storeId;
+    private String tpLoginCode;
+    private String storeId;
     private Boolean revokeSession;
 
     public FormEncoded() {
@@ -70,19 +70,19 @@ public class FormEncoded {
         this.loginTypeId = loginTypeId;
     }
 
-    public Integer getTpLoginCode() {
+    public String getTpLoginCode() {
         return tpLoginCode;
     }
 
-    public void setTpLoginCode(Integer tpLoginCode) {
+    public void setTpLoginCode(String tpLoginCode) {
         this.tpLoginCode = tpLoginCode;
     }
 
-    public Integer getStoreId() {
+    public String getStoreId() {
         return storeId;
     }
 
-    public void setStoreId(Integer storeId) {
+    public void setStoreId(String storeId) {
         this.storeId = storeId;
     }
 
