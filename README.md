@@ -78,34 +78,48 @@ Modelo de Requisição REST utilizando os parâmetros Authentication Bearer e *C
 
 
 ## Processo de Autenticação (TOKEN)
-O fornecedor disponibiliza ao cliente credenciais no formato usuário e senha (*username/password*) na qual devem ser trata a fim de gerar um *TOKEN* **(Base64)**. A chamada ao *endpoint* se faz através de um formulário codificado (*form-urlencoded*) que encaminhará uma requisição do tipo POST, com o parâmetro **storeId** com o valor nulo (*null*) a fim de obter a lista de códigos de negócio disponibilidado para o cliente, denominado de *identificação da loja ou lojaID (StoreID)*.
+O fornecedor disponibiliza ao cliente credenciais no formato usuário e senha (*username/password*) na qual devem ser passadas a fim de abrir uma sessão, a partir da análise dos valores informados é gerado um *TOKEN* **(Base64)**, que válida os processos realizados durante a sessão. A chamada ao *endpoint* se faz através de um formulário codificado (*form-urlencoded*) que encaminhará uma requisição do tipo POST, na qual é realizada em duas partes:
+1. É fornecido os parâmetros para identificação do cliente através do formulário, anulando o parâmetro **storeId** (*null*) a fim de obter a lista de códigos de negócio disponibilidado para o cliente, denominado de *identificação da loja ou lojaID (StoreID)*;
+
 
 <img align="middle" width="600" height="450" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/processo_autenticacao.jpeg">
 
-Caso o retorno seja satisfatório, é retornado uma lista de código de negócios onde para o tipo de serviço que disponibilizamos é buscado o código correspondente a ***Turismo*** a fim de utilizar o seu identificador para as demais chamadas, e na chamada subsequente ao *endpoint (token)* desta vez é passado o id localizado, referente ao tipo de negócio, ao parâmetro **storeId** do formulário, para obtermos o *TOKEN* de validação da sessão do usuário.
+Caso o retorno seja satisfatório, é retornado uma lista de código de negócios onde identica o cliente que deseja realizar a aquisição do produto CSC - Santander.
 
 ```json
 {
-  "stores": [
-    {
-      "statusCode": "A",
-      "code": "458469",
-      "name": "Alph",
-      "id": 2
-    },
-    {
-      "statusCode": "A",
-      "code": "405460",
-      "name": "Turismo",
-      "id": 137477
-    }
-  ]
+ "stores": [
+       {
+           "statusCode": "A",
+           "code": "1234290000",
+           "name": "ORINTER VIAGENS",
+           "id": 145497,
+           "documentNumber": "82170291000120"
+       },
+       {
+           "statusCode": "A",
+           "code": "4725870000",
+           "name": "VIAGENS PROMO T",
+           "id": 263940,
+           "documentNumber": "5008876000106"
+       },
+       {
+           "statusCode": "I",
+           "code": "4139400000",
+           "name": "CATIVA",
+           "id": 205952,
+           "documentNumber": "5111606000118"
+       }
+   ]
 }
 ```
 
+2. Após obter o código correspondente ao lojista (cliente), é realizada uma nova chamada ao *endpoint*, mas agora passando este número do lojista (StoreID);
+
 <img align="middle" width="600" height="200" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/processo_autenticacao2.jpeg">
 
-Desta forma, o retorno sendo satisfatório será o TOKEN *Transacional* que validará a sessão com inforações sobre seu tipo e validade.
+Desta forma, o retorno sendo satisfatório será devolvido o TOKEN *Transacional* que validará a sessão com inforações sobre seu tipo e validade.
+
 ```json
 {
   "access_token": "eyJ4NXQiOiJNelU2IiwiYWxnIjoiUlMyNTYif.AI-xf57Mlh6eG162tFi_TA0DwSRP2ha1NwmLe4wpgSL_WqpMT3eIj8pxIlAw3rxozzwI3vUcy4h4L6QODQxK0qXOsXuITKKXIoEwWdjGAxUM9zpypiIQeW93y5NX_fgxcPg7zJAYyxvyfmMyu76Kkl6KvmjkPTncc5BT9t-irY1xg",

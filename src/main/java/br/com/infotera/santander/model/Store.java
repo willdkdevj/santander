@@ -10,6 +10,8 @@ public class Store {
     
     private String statusCode;
 
+    private String documentNumber;
+    
     public Store() {
     }
 
@@ -43,6 +45,14 @@ public class Store {
 
     public void setStatusCode(String statusCode) {
         this.statusCode = statusCode;
+    }
+
+    public String getDocumentNumber() {
+        return documentNumber;
+    }
+
+    public void setDocumentNumber(String documentNumber) {
+        this.documentNumber = documentNumber;
     }
 
 }

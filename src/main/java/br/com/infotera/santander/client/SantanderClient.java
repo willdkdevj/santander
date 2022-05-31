@@ -9,6 +9,7 @@ import br.com.infotera.common.util.Utils;
 import br.com.infotera.santander.model.DocumentGet;
 import br.com.infotera.santander.model.RQRS.*;
 import br.com.infotera.santander.model.RuleGet;
+import br.com.infotera.santander.model.Store;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.util.ArrayList;
@@ -39,32 +40,40 @@ public class SantanderClient {
             result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "token", AuthTokenRS.class);
 //            sessao = new WSSessao(result.getTokenType(), integrador.getIdEmpresa(), result.getAccessToken(), new Date(), null);
             if(result.getStores() != null && !Utils.isListNothing(result.getStores())){
-                // Verifica o retorno dos códigos 
-                storeId = result.getStores().stream()
-                        .filter(store -> !store.getCode().equals(""))
+                // Verifica o retorno dos códigos
+                Store store = result.getStores().stream()
+                        .filter(storeid -> !storeid.getCode().equals(""))
                         .findFirst()
-                        .orElse(null)
-                        .getCode();
+                        .orElse(null);
                 
-                if(storeId != null){
-                    authToken.setStoreId(storeId);
-                        
-                    // 2ª Chamada para obter o access token (Bearer)
-                    result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "token", AuthTokenRS.class);
+                if(store != null && store.getCode() != null && store.getDocumentNumber() != null
+                        && !store.getCode().equals("") && !store.getDocumentNumber().equals("")){
                     
                     // Criação de sessão após o retorno da segunda chamada
                     sessao = new WSSessao();
-                    sessao.setCdChave(storeId);
+                    sessao.setCdChave(store.getCode() + "#" + store.getDocumentNumber()); // StoreID e DocumentNumber
                     sessao.setDtInclusao(new Date());
                     sessao.setIdEmpresa(integrador.getIdEmpresa());
+                    
+                    authToken.setStoreId(store.getCode());
+                    
+                } else {
+                    throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.GENABRSES, 
+                            "Erro ao obter o código (StoreID) referente ao tipo de negócio. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, false);
+                }
+                
+                // 2ª Chamada para obter o access token (Bearer)
+                result = restClient.sendReceive(integrador, authToken, HttpMethod.POST, "token", AuthTokenRS.class);
+                
+                if(result.getAccessToken() != null && !result.getAccessToken().equals("")){
                     sessao.setDsSessao(result.getAccessToken());
                 } else {
                     throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.GENABRSES, 
-                            "Erro ao obter o código (StoreID) referente ao tipo de negócio. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
+                        "Erro ao obter o token (AccessToken) para validar sessão. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, false);
                 }
             } else {
                 throw new ErrorException(integrador, RESTClient.class, "abrirSessao", WSMensagemErroEnum.GENABRSES, 
-                        "Erro ao obter os códigos (StoreID) para o cliente. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, true);
+                        "Erro ao obter os códigos (StoreID) para o cliente. Entre em contato com o fornecedor (Santander)", WSIntegracaoStatusEnum.NEGADO, null, false);
             }
         } catch(ErrorException e) {
             throw e;
@@ -80,13 +89,13 @@ public class SantanderClient {
 
     public IntegrationCodeRS getProductCSC(WSIntegrador integrador) throws ErrorException {
         List result = null;
-        String codigoIntegra = null;
+        String[] codigoIntegra = null;
         IntegrationCodeRS integrationCode = null;
         integrador.setDsAction("products");
         
         try {
-            codigoIntegra = integrador.getSessao().getCdChave();
-            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "products"+ "/" + codigoIntegra, List.class);
+            codigoIntegra = integrador.getSessao().getCdChave().split("#");
+            result = restClient.sendReceive(integrador, null, HttpMethod.GET, "products"+ "/" + codigoIntegra[1], List.class);
             
             List<IntegrationCodeRS> listCode = null;
             if(result != null){

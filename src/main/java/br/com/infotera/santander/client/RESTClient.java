@@ -63,7 +63,7 @@ public class RESTClient {
                 // Montado o Formulário (form-encoded)
                 // Montado a requisição para ser enviada para Autenticação
                 HttpEntity<FormEncoded> entity = new HttpEntity(montarFormUrl(integrador, authToken), montarHeader(integrador));
-                UtilsWS.geraArquivo(gson.toJson(entity), "/home/william/Documentos/", "request_"+integrador.getDsAction()+"_"+time+".json");
+//                UtilsWS.geraArquivo(gson.toJson(entity), "/home/william/Documentos/", "request_"+integrador.getDsAction()+"_"+time+".json");
 
                 // Injeta o ObjectMapper no RestTemplate para auxilio da conversão dos parâmetros do formulário (form-encoded)
                 restTemplate.getMessageConverters().add(new ObjectUrlEncodedConverter(objectMapper));
@@ -77,7 +77,7 @@ public class RESTClient {
             } else {
                 // Objeto a ser passado como requisição
                 HttpEntity<String> entity = new HttpEntity(gson.toJson(request), montarHeader(integrador));
-                UtilsWS.geraArquivo(gson.toJson(entity), "/home/william/Documentos/", "request_"+integrador.getDsAction()+"_"+time+".json");
+//                UtilsWS.geraArquivo(gson.toJson(entity), "/home/william/Documentos/", "request_"+integrador.getDsAction()+"_"+time+".json");
                 try {
                     // Retorno do fornecedor referente a chamada aos métodos
                     responseEntity = restTemplate.exchange(endpoint, httpMethod, entity, String.class);
@@ -90,8 +90,9 @@ public class RESTClient {
             LogWS.convertRequest(integrador, log, gson, request);
             
             // LOG - RESPONSE
-            result = LogWS.convertResponse(integrador, log, gson, responseEntity, retorno); // gson.fromJson(responseEntity.getBody(), retorno); //
-            UtilsWS.geraArquivo(gson.toJson(result), "/home/william/Documentos/", "response_"+integrador.getDsAction()+"_"+time+".json");
+            result = gson.fromJson(responseEntity.getBody(), retorno); //
+            LogWS.convertResponse(integrador, log, gson, responseEntity, retorno);
+//            UtilsWS.geraArquivo(gson.toJson(result), "/home/william/Documentos/", "response_"+integrador.getDsAction()+"_"+time+".json");
             
             if(result == null) {
                 Error error = gson.fromJson((String)responseEntity.getBody(), Error.class);
@@ -224,7 +225,6 @@ public class RESTClient {
             
             switch (response.getStatusCode()) {
                 case "400":
-                case "500":
                     throw new ErrorException(integrador, RESTClient.class, "verificarErro", WSMensagemErroEnum.GENENDPOINT, 
                             "Erro do conector: CODERROR: " + metodo + " " + dsStatus + " " + dsMsg, WSIntegracaoStatusEnum.NEGADO, null, false);
                 case "401":
@@ -255,10 +255,15 @@ public class RESTClient {
                     //Erro generico, mensagem especificada na documentação
                     throw new ErrorException(integrador, RESTClient.class, "verificarErro", WSMensagemErroEnum.GENENDPOINT, 
                             "Erro do conector: O usuário atingiu o limite de requisições! CODERROR: " + metodo + " " + dsStatus + " " + dsMsg, WSIntegracaoStatusEnum.NEGADO, null, false);
-                case "503":
+                case "500":
                     //Erro generico, mensagem especificada na documentação
                     throw new ErrorException(integrador, RESTClient.class, "verificarErro", WSMensagemErroEnum.GENENDPOINT, 
-                            "Erro do conector: Servidor temporariamente off-line! CODERROR: " + metodo + " " + dsStatus + " " + dsMsg, WSIntegracaoStatusEnum.NEGADO, null, false);
+                            "Erro do conector: Reportar o erro para o time tecnico! CODERROR: " + metodo + " " + dsStatus + " " + dsMsg, WSIntegracaoStatusEnum.NEGADO, null, false);
+                case "503":
+                case "504":
+                    //Erro generico, mensagem especificada na documentação
+                    throw new ErrorException(integrador, RESTClient.class, "verificarErro", WSMensagemErroEnum.GENENDPOINT, 
+                            "Erro do conector: Servidor temporariamente off-line! Tentar novamente mais tarde - CODERROR: " + metodo + " " + dsStatus + " " + dsMsg, WSIntegracaoStatusEnum.NEGADO, null, false);
                 default:
             }
         }
