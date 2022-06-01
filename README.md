@@ -64,7 +64,7 @@ Os frameworks são pacotes de códigos prontos que facilita o desenvolvimento de
 
 
 ## Sobre a Estrutura da REST API (Santander - Accenture)
-O *Webwservice* recebe as *request* via REST POST/PUT/GET, na qual sua estrutura segue o padrão (JSON). Abaixo segue as bibliotecas utilizadas neste projeto a fim de dar embasamento ao código a ser implementado para criação do *webservice*.
+O *Webwservice* recebe as *request* via REST POST/GET, na qual sua estrutura segue o padrão (JSON). Abaixo segue as bibliotecas utilizadas neste projeto a fim de dar embasamento ao código a ser implementado para criação do *webservice*.
 
 | Framework           |   Tipo    |
 |---------------------|:---------:|
@@ -78,7 +78,8 @@ Modelo de Requisição REST utilizando os parâmetros Authentication Bearer e *C
 
 
 ## Processo de Autenticação (TOKEN)
-O fornecedor disponibiliza ao cliente credenciais no formato usuário e senha (*username/password*) na qual devem ser passadas a fim de abrir uma sessão, a partir da análise dos valores informados é gerado um *TOKEN* **(Base64)**, que válida os processos realizados durante a sessão. A chamada ao *endpoint* se faz através de um formulário codificado (*form-urlencoded*) que encaminhará uma requisição do tipo POST, na qual é realizada em duas partes:
+O fornecedor disponibiliza ao cliente credenciais no formato Base64 (Usuário de Consumo - *Consumer Key/Consumer Secret*) e Autenticação (*username/password*), na qual devem ser passadas a fim de abrir uma sessão. A partir da análise dos valores informados é gerado um *TOKEN* **(Base64)**, que válida os processos realizados durante a sessão. A chamada ao *endpoint* se faz através de um formulário codificado (*form-urlencoded*) que encaminhará uma requisição do tipo POST, na qual é realizada em duas etapas:
+
 1. É fornecido os parâmetros para identificação do cliente através do formulário, anulando o parâmetro **storeId** (*null*) a fim de obter a lista de códigos de negócio disponibilidado para o cliente, denominado de *identificação da loja ou lojaID (StoreID)*;
 
 
@@ -114,7 +115,7 @@ Caso o retorno seja satisfatório, é retornado uma lista de código de negócio
 }
 ```
 
-2. Após obter o código correspondente ao lojista (cliente), é realizada uma nova chamada ao *endpoint*, mas agora passando este número do lojista (StoreID);
+2. Após obter o código correspondente ao lojista (cliente), é realizada uma nova chamada ao *endpoint*, mas agora fornecendo o número do lojista (StoreID) para obter o token de sessão;
 
 <img align="middle" width="600" height="200" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/processo_autenticacao2.jpeg">
 
@@ -128,6 +129,8 @@ Desta forma, o retorno sendo satisfatório será devolvido o TOKEN *Transacional
   "expires_in": "3600"
 }
 ```
+
+> **NOTA:** *O TOKEN Transacional (Bearer) permanece ativo até o tempo apontado em *expires_in* (segundos), na qual ao expirar será necessário realizar uma nova chamada para autenticação*.
 
 ### Formulário Codificado (Form-Encoded)
 O método de autenticação utiliza um formulário codificado (*Form-Encoded*) a fim de passar parâmetros que identifiquem o cliente através do protocolo padrão **OAuth 2.0**. Para este fim, foi necessário utilizar o ***ObjectMapper (Jackson)*** que possibilita utilizar a funcionalidade de leitura e escrita JSON, tanto de elementos para POJOs básicos (*Plain Old Java Objects*), quanto para elementos de um Modelo de Árvore JSON de uso geral (*JsonNode*). 
@@ -146,7 +149,7 @@ Instância da classe FormEncoded para passá-la como formulário codificado em H
           form.setPassword(authToken.getPassword());
           form.setBusinessCode(2);
           form.setLoginTypeId(9);
-          form.setTpLoginCode(8);
+          form.setTpLoginCode("00008");
           form.setStoreId(authToken.getStoreId() != null && Utils.isNumerico(authToken.getStoreId()) ? Integer.parseInt(authToken.getStoreId()) : null);
           form.setRevokeSession(Boolean.TRUE);
       } catch (NumberFormatException e) {
@@ -156,9 +159,6 @@ Instância da classe FormEncoded para passá-la como formulário codificado em H
       return form;
   }
 ```
-
-> **NOTA:** *O TOKEN Transacional (Bearer) permanece ativo até o tempo apontado em *expires_in* (segundos), na qual ao expirar será necessário realizar uma nova chamada para autenticação*.
-
 
 ## Verificar Produtos
 O fornecedor devolve quais são os produtos disponibilizado para cliente, onde para continuar com o fluxo de financiamento, se faz necessário invocar o *endpoint* de domínios (*Domains*) para listá-los. Desta forma, é necessário realizar uma requisição (GET) com a identificação da loja (lojaID - StoreID) retornado na primeira chamada em *token*.
@@ -224,6 +224,14 @@ Para acesso aos ambientes (*Homologação/Produção*) da Santander Accenture se
 |  *HOMOLOGAÇÃO*  | https://brpiosantanderapihml.viverebrasil.com.br/   |
 |  *PRODUÇÃO*	  | https://brpiosantanderapi.viverebrasil.com.br/  |
 
+Estrutura de Chamadas ao Fornecedor - Coleção de Métodos [ Postman - BR Santander API ](https://github.com/InfoteraTecnologia/santander/blob/master/assets/santander.postman_collection.json)
+
+| Credencial | Valores |
+|:------:|:------:|
+| Usuário | 09551043000130 |
+| Senha | InfssteR@@2569 |
+
+**Documentação Oficial da API:** [Santander - Accenture](https://brpiosantanderhml.viverebrasil.com.br/devportal/apis)
 
 ### Limites e Restrições
 * O ambiente de homologação é um replicação do ambiente de produção, porém com um universo reduzido de massa e não necessariamente replica as condições de produção;
@@ -316,8 +324,3 @@ A tabela abaixo contém os possíveis status de retorno.
 ## Suporte Técnico
 O contato para suporte disponível é através de endereço eletrônico [atendimento@santander.com.br](https://brpiosantanderhml.viverebrasil.com.br/devportal/apis), na qual não é apontado prazos para SLA e horários para atendimento.
 
-| Credencial | Valores |
-|:------:|:------:|
-| Usuário | 09551043000130 |
-| Senha | InfssteR@@2569 |
-**Documentação Oficial da API:** [Santander - Accenture](https://brpiosantanderhml.viverebrasil.com.br/devportal/apis)

@@ -20,7 +20,6 @@ import br.com.infotera.santander.model.Error;
 import br.com.infotera.santander.model.RQRS.AuthTokenRQ;
 import br.com.infotera.santander.model.FormEncoded;
 import br.com.infotera.santander.util.ObjectUrlEncodedConverter;
-import br.com.infotera.santander.util.UtilsWS;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
@@ -131,7 +130,7 @@ public class RESTClient {
                 result = new String(encoded);
             } catch (UnsupportedEncodingException e) {
                 throw new ErrorException(integrador, RESTClient.class, "montaEncoderBase64", WSMensagemErroEnum.GENCONVERT, 
-                        "Erro ao montar o fator de encriptação (Base64)" + e.getMessage(), WSIntegracaoStatusEnum.NEGADO, e, false);
+                        "Erro ao montar o fator de encriptação (Base64) " + e.getMessage(), WSIntegracaoStatusEnum.NEGADO, e, false);
             }
         }
         return result;
@@ -154,7 +153,7 @@ public class RESTClient {
             } 
         } catch (ErrorException | UnsupportedEncodingException ex) {
             throw new ErrorException(integrador, RESTClient.class, "montarHeader", WSMensagemErroEnum.GENMETHOD, 
-                    "Erro ao obter Token para Autenticação" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
+                    "Erro ao obter Token para Autenticação " + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
         return headers;
@@ -171,7 +170,7 @@ public class RESTClient {
             }
         } catch (Exception e) {
             throw new ErrorException(integrador, RESTClient.class, "retornarEnvironmentUri", WSMensagemErroEnum.GENENDPOINT, 
-                    "Erro ao obter o método para chamada de endpoint" + e.getMessage(), WSIntegracaoStatusEnum.NEGADO, e, false);
+                    "Erro ao obter o método para chamada de endpoint " + e.getMessage(), WSIntegracaoStatusEnum.NEGADO, e, false);
         }
         
         try {
@@ -205,7 +204,7 @@ public class RESTClient {
             }
         } catch (Exception e) {
             throw new ErrorException(integrador, RESTClient.class, "retornarEnvironmentUri", WSMensagemErroEnum.GENENDPOINT, 
-                    "Erro ao obter o Endpoint para realizar a chamada ao Fornecedor" + e.getMessage(), WSIntegracaoStatusEnum.NEGADO, e, true);
+                    "Erro ao obter o Endpoint para realizar a chamada ao Fornecedor " + e.getMessage(), WSIntegracaoStatusEnum.NEGADO, e, true);
         }
 
         return endpoint;
