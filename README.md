@@ -160,8 +160,8 @@ Instância da classe FormEncoded para passá-la como formulário codificado em H
   }
 ```
 
-## Verificar Produtos
-O fornecedor devolve quais são os produtos disponibilizado para cliente, onde para continuar com o fluxo de financiamento, se faz necessário invocar o *endpoint* de domínios (*Domains*) para listá-los. Desta forma, é necessário realizar uma requisição (GET) com a identificação da loja (lojaID - StoreID) retornado na primeira chamada em *token*.
+## Verificação de Produtos (Financiamento)
+O fornecedor devolve quais são os produtos de financiamento disponibilizado para cliente, onde para continuar com o fluxo de financiamento, se faz necessário invocar o *endpoint* de domínios (*Domains*) para listá-los. Desta forma, é necessário realizar uma requisição (GET) com a identificação da loja (lojaID - StoreID) retornado na primeira chamada em *token*.
 ```json
 [
   {
@@ -268,42 +268,42 @@ A tabela abaixo apresenta os parâmetros e seus respectivos valores, como tipo, 
 ### As Funcionalidades do WebService
 Toda a chamada ao *webservice* é necessário realizar a autenticação (***TOKEN***) a fim de ser autorizado e validar suas chamadas aos métodos, desta forma, para concluir este processo de autenticação são necessárias duas chamadas.
 
-<img align="center" width="300" height="200" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/token1.jpeg">
+<img align="center" width="300" height="200" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/token1.jpeg">
 
 A primeira funcionalidade é realizada sem o parâmetro *StoreID* para obter todos os IDs disponibilizados para o cliente.
 
-<img align="center" width="300" height="200" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/token2.jpeg">
+<img align="center" width="300" height="200" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/token2.jpeg">
 
 A segunda é obtido o valor do **StoreID** que identifica o cliente e realiza uma nova chamada a fim de obter o token de validação de sessão (*Bearer*). 
 > Nota: O token (*Bearer*) deve ser passado para as demais chamadas enquanto o token não expira.
 
 A funcionalidade de Pré-Aprovação (***PreApproved***) tem a função de autorizar o acesso a plataforma e também ao analisar os dados enviados sobre o cliente a fim de determinar as condições a qual ele tem acesso pela mesma. Desta forma, caso seu cadastro seja aprovado é encaminhado um range de opções de parcelamento, a qual ele tem possibilidade de parcelar o valor de compra informado.
 
-<img align="center" width="400" height="400" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/fluxo_pre_approved.jpeg">
+<img align="center" width="400" height="400" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/fluxo_pre_approved.jpeg">
 
 A imagem acima demonstra como a chamada ao método preApproved (POST) ocorre ilustrando a requisição com o autorizador, onde no corpo (*body*) é passado os dados do cliente, as informações acordadas entre a Virtus Pay e a Infotera (**Other Info**), que consiste em informações sobre sua última compra pela plataforma Virtus, e o valor da compra.
 
 A funcionalidade Proposta ou Ordem (***Order***) consiste em uma variação de funções conforme o tipo de protocolo invocado. Ao utilizar o protocolo **POST** é encaminhada uma ordem a ser analisada pela plataforma a fim de acatada ou não pela Virtus Pay, na qual são solicitadas alguns detalhes sobre o pedido, dados do cliente, informações sobre a parcela escolhida, ponto de acesso via *Webhook* e o ID da pré-aprovação (*ID PreApproved*) que é retornado na chamada anterior. 
 
-<img align="center" width="400" height="400" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/fluxo_order_proposta.jpeg">
+<img align="center" width="400" height="400" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/fluxo_order_proposta.jpeg">
 
 Caso o resposta (*response*) seja satisfatória, é retornado um ID para a Transação (*ID Transaction*) a ser utilizado em todo o fluxo da proposta, além dele, é retornado os detalhes do pedido, dados do cliente, dados da compra e informações sobre o webhook.
 
 Mas a proposta não é aprovada já ao envia-la, ela possuí estados de processamento que pode ser consultado ao utilizar o protocolo **GET** ao método *Order* a fim de verificar seu ciclo de aprovação.
 
-<img align="middle" width="400" height="400" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/fluxo_consulta_order.jpeg">
+<img align="middle" width="400" height="400" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/fluxo_consulta_order.jpeg">
 
 Para este fim é necessário passar como parâmetro do protocolo o valor ID Transaction, que corresponde ao id da transação correspondente a proposta que foi encaminhado como resposta. Desta forma, em seu retorno será obtida a mesma resposta devolvida ao chamar a proposta, mas com a atualização sobre o seu estado.
 
 Também existe a possibilidade do cliente querem cancelar a compra do insumo, desta forma, ao utilizar o protocolo **PUT** ao método *Order* é encaminhada uma solititação para cancelamento da operação.
 
-<img align="middle" width="400" height="400" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/fluxo_cancel.jpeg">
+<img align="middle" width="400" height="400" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/fluxo_cancel.jpeg">
 
 Para isto, é necessário passar como parâmetro do protocolo o valor ID Transaction, com o acréscimo do parâmetro [/void], a fim de identificar a operação, passando em seu corpo (*body*) o tipo de cancelamento (TED / ORPAG), o motivo do cancelamento, **(optional)** os dados bancário e **(opcional)** o valor a ser estornado. Desta forma, em seu retorno será obtida informação sobre o estado da ordem e o estado do processamento do cancelamento.
 
 Existe também a possibilidade de consultar periodicamente o estado deste processamento ao realizar uma chamada utilizando o protocolo **GET** ao método *Order*, mas acrescentando ao final da chamada o parâmetro [/void].
 
-<img align="middle" width="400" height="400" src="https://github.com/InfoteraTecnologia/virtuspay/blob/master/assets/fluxo_consulta_cancel.jpeg">
+<img align="middle" width="400" height="400" src="https://github.com/InfoteraTecnologia/santander/blob/master/assets/fluxo_consulta_cancel.jpeg">
 
 Desta forma, como retorno será obtido as informações atualizadas sobre o estado da ordem e o estado do processamento da operação de cancelamento.
 
