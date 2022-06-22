@@ -201,6 +201,7 @@ A tabela abaixo descreve a função,descrição e onde é requisitada pelo forne
 
 |    Função    | Descrição                                | Protocolo |   Requisição    |
 |:------------:|:----------------------------------------:|:---------:|:---------------:|
+| Token        | Validação de usuário e criação de token para validação de sessão | POST | Sessão | 
 | Products | Serviço utilizado para retornar os produtos de negócio disponibilizado pelo fornecedor a fim de obter seu código para as chamadas as suas funcionalidades | GET | Pré Analise |
 | List-Terms | Retorna os termos e condições a serem aprovados para o quitante, referente aos produtos disponibilidados ao cliente, para dar continuidade ao fluxo de pagamento | GET | Pré-Analise |
 | Consent-Register | Retorna os termos de políticas da Lei Geral de Proteção de Dados (LGPD - Lei n°13.853) a fim de ser acordada com o quitante para dar continuidade ao fluxo de pagamento | POST | Pré-Analise |

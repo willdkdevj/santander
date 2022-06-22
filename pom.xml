@@ -12,7 +12,7 @@
     <groupId>br.com.infotera.santander</groupId>
     <artifactId>santander</artifactId>
     <version>1.0.0</version>
-    <name>santander-financiamento</name>
+    <name>santander</name>
     <description>Projeto de API para webservice de transações para Pagamentos via boletos</description>
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -53,6 +53,24 @@
             <artifactId>resteasy-client</artifactId>
             <version>3.12.1.Final</version>
         </dependency>
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.9.1</version>
+         </dependency>
+
+         <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-features-logging</artifactId>
+            <version>3.4.1</version>
+         </dependency>
+
+         <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.5.1</version>
+            <type>jar</type>
+         </dependency>
         <dependency>
             <groupId>br.com.infotera.it</groupId>
             <artifactId>it-common</artifactId>
