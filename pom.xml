@@ -11,7 +11,7 @@
     </parent>
     <groupId>br.com.infotera.santander</groupId>
     <artifactId>santander</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0.1</version>
     <name>santander</name>
     <description>Projeto de API para webservice de transações para Pagamentos via boletos</description>
     <properties>

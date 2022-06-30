@@ -11,4 +11,4 @@ RUN addgroup bootapp && \
 
 WORKDIR /opt
 USER bootapp
-CMD java -server -Xms64m -Xmx128m -XX:MaxMetaspaceSize=128m -Duser.timezone=GMT-3 -Djava.awt.headless=true -jar app.jar $ST_AMBIENTE
+CMD java -server -Xms32m -Xmx64m -Duser.timezone=GMT-3 -Djava.awt.headless=true -jar app.jar $ST_AMBIENTE

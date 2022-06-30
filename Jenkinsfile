@@ -18,7 +18,7 @@ pipeline {
 
         stage("Deploy - Producao"){
             when {
-                 expression { VERSION ==~  /[0-9]+\.[0-9]+\.[0-9]+/  }
+                 expression { VERSION ==~  /[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/  }
             }
             steps {
                 script {
