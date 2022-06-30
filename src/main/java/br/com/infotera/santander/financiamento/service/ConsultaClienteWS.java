@@ -5,7 +5,7 @@ import br.com.infotera.common.WSCliente;
 import br.com.infotera.common.WSIntegrador;
 import br.com.infotera.common.enumerator.WSIntegracaoStatusEnum;
 import br.com.infotera.common.enumerator.WSMensagemErroEnum;
-import br.com.infotera.common.pagto.financiamento.WSPagtoFinanciamento;
+import br.com.infotera.common.pagto.WSPagtoFinanciamento;
 import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoConsultaClienteRQ;
 import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoConsultaClienteRS;
 import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoFinanciamentoRQ;

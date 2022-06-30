@@ -1,8 +1,6 @@
 package br.com.infotera.santander.financiamento.service;
 
 import br.com.infotera.santander.financiamento.rqrs.SimulacaoRQ;
-import br.com.infotera.santander.financiamento.rqrs.IntegrationCodeRS;
-import br.com.infotera.santander.financiamento.rqrs.TermosCondicoesRS;
 import br.com.infotera.santander.financiamento.rqrs.SimulacaoRS;
 import br.com.infotera.common.ErrorException;
 import br.com.infotera.common.WSCliente;
@@ -16,6 +14,7 @@ import br.com.infotera.common.pagto.WSPagtoForma;
 import br.com.infotera.common.pagto.WSPagtoMeioFinanciamento;
 import br.com.infotera.common.pagto.WSPagtoMeioParcela;
 import br.com.infotera.common.pagto.WSPagtoValor;
+import br.com.infotera.common.pagto.financiamento.WSTermoFinanciamento;
 import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoAnaliseRQ;
 import br.com.infotera.common.pagto.financiamento.rqrs.WSPagtoAnaliseRS;
 import br.com.infotera.common.util.Utils;
@@ -35,37 +34,20 @@ import org.springframework.stereotype.Component;
 public class SimularWS {
 
     @Autowired
-    private SessaoWS sessaoWS;
-
-    @Autowired
     private SantanderClient santanderClient;
 
     public WSPagtoAnaliseRS simularFinanciamento(WSPagtoAnaliseRQ pagtoAnaliseRQ) throws ErrorException {
-        WSIntegrador integrador = null;
-        if (pagtoAnaliseRQ.getIntegrador().getSessao() == null) {
-            integrador = sessaoWS.abreSessao(pagtoAnaliseRQ.getIntegrador());
-        } else {
-            integrador = pagtoAnaliseRQ.getIntegrador();
-        }
         
-        // Chamada para obter o Código da Loja (ID Loja) - Deve ser realizada nova chamada para obter novo código, caso seja feita nova análise
-        IntegrationCodeRS integrationCode = santanderClient.getProductCSC(integrador);
+        SimulacaoRQ simulationRQ = montarRequestSimulacao(pagtoAnaliseRQ);
         
-        // Retorna os termos e condições para uso do produto de financiamento (Retorno de Contrato no formato HTML)
-        TermosCondicoesRS termosCondGeral = santanderClient.retornarTermosCondicoes(integrador); // VERIFICAR ONDE DEVERA SER PASSADA O TERMO (HTML)
+        SimulacaoRS simulationRtn = santanderClient.criarSimulacao(pagtoAnaliseRQ.getIntegrador(), simulationRQ);
         
-        // Retorna as questões a serem apresentadas ao cliente e seu aceite deve ser avaliada para realizar a simulação
-        TermosCondicoesRS termosLGPD = santanderClient.retornarTermosLGPD(integrador); // VERIFICAR ONDE DEVERA SER PASSADA AS QUESTÕES SOBRE O TERMO (TEXTO)
-        
-        SimulacaoRQ simulationRQ = montarRequestSimulacao(pagtoAnaliseRQ, integrationCode, termosLGPD);
-        SimulacaoRS simulationRtn = santanderClient.criarSimulacao(integrador, simulationRQ);
-        
-        WSPagtoMeioFinanciamento pagtoMeioFinanciamento = montarPagtoMeioFinanciamento(integrador, integrationCode, simulationRtn);
+        WSPagtoMeioFinanciamento pagtoMeioFinanciamento = montarPagtoMeioFinanciamento(pagtoAnaliseRQ.getIntegrador(), simulationRtn);
 
-        return new WSPagtoAnaliseRS(integrador, pagtoMeioFinanciamento, pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente(), WSIntegracaoStatusEnum.OK);
+        return new WSPagtoAnaliseRS(pagtoAnaliseRQ.getIntegrador(), pagtoMeioFinanciamento, pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente(), WSIntegracaoStatusEnum.OK);
     }
 
-    private WSPagtoMeioFinanciamento montarPagtoMeioFinanciamento(WSIntegrador integrador, IntegrationCodeRS integrationCode, SimulacaoRS simulationRS) throws ErrorException {
+    private WSPagtoMeioFinanciamento montarPagtoMeioFinanciamento(WSIntegrador integrador, SimulacaoRS simulationRS) throws ErrorException {
         WSPagtoMeioFinanciamento pagtoMeioFinanciamento = null;
         
         List<WSPagtoMeioParcela> financiamentoParcelasList = null;
@@ -194,32 +176,24 @@ public class SimularWS {
         return pagtoMeioFinanciamento;
     }
 
-    private SimulacaoRQ montarRequestSimulacao(WSPagtoAnaliseRQ pagtoAnaliseRQ, IntegrationCodeRS integrationCode, TermosCondicoesRS termosLGPD) throws ErrorException {
-        Simulation simulation = null;
-        PartnerClient partnerClient = null;
-        ListTerms listTerms = null;
-        Lgpd lgpd = null;
-        
+    private SimulacaoRQ montarRequestSimulacao(WSPagtoAnaliseRQ pagtoAnaliseRQ) throws ErrorException {
+        SimulacaoRQ simulacao = null;
         try {
-            simulation = montarSimulation(pagtoAnaliseRQ.getIntegrador(), integrationCode, pagtoAnaliseRQ.getPagtoMeioFinanciamento(), pagtoAnaliseRQ.getReserva());
+            Simulation simulation = montarSimulation(pagtoAnaliseRQ.getIntegrador(), pagtoAnaliseRQ.getPagtoMeioFinanciamento(), pagtoAnaliseRQ.getReserva());
                         
-            partnerClient = montarDadosCliente(pagtoAnaliseRQ.getIntegrador(), pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente());
+            PartnerClient partnerClient = montarDadosCliente(pagtoAnaliseRQ.getIntegrador(), pagtoAnaliseRQ.getFinanciamentoCadastro().getCliente());
             
-            listTerms = new ListTerms();
-            listTerms.setAnswerCompanyOffer(termosLGPD.getAnswerCompanyOffer());
-            
-            lgpd = new Lgpd();
-            lgpd.setAnswerGroupOffer(termosLGPD.getAnswerGroupOffer());
-            lgpd.setAnswerPartnerOffer(termosLGPD.getAnswerPartnerOffer());
+            simulacao = montarTermosContratuais(pagtoAnaliseRQ.getIntegrador(), simulation, partnerClient, pagtoAnaliseRQ.getPagtoMeioFinanciamento().getTermoFinanciamentoList());
             
         } catch (ErrorException ex){
             throw new ErrorException(pagtoAnaliseRQ.getIntegrador(), SimularWS.class, "montarSimulation", 
                     WSMensagemErroEnum.PSE, "Erro ao obter as Formas de Pagamento do Fornecedor.", WSIntegracaoStatusEnum.ATENCAO, ex, false);
         }
+        
         return new SimulacaoRQ();
     }
     
-    private Simulation montarSimulation(WSIntegrador integrador, IntegrationCodeRS integrationCode, WSPagtoMeioFinanciamento pagtoMeioFinanciamento, WSReserva reserva) throws ErrorException{
+    private Simulation montarSimulation(WSIntegrador integrador, WSPagtoMeioFinanciamento pagtoMeioFinanciamento, WSReserva reserva) throws ErrorException{
         Simulation simulation = null;
         String[] codesIntegra = null;
         String codigoLoja = null;
@@ -233,10 +207,14 @@ public class SimularWS {
                         WSMensagemErroEnum.PSE, "Erro ao obter as Formas de Pagamento do Fornecedor.", WSIntegracaoStatusEnum.ATENCAO, null, false);
             }
             
-            
+            String cdProduto = pagtoMeioFinanciamento.getProdutoFinanciamentoList().stream()
+                    .filter(produto -> produto.getCdProduto() != null)
+                    .findFirst()
+                    .orElseThrow(ErrorException::new)
+                    .getCdProduto();
                     
             simulation = new Simulation();
-            simulation.setProductCode(integrationCode.getCode());
+            simulation.setProductCode(cdProduto);
             simulation.setSupplierChannelCode(codigoLoja);
             simulation.setFinancedValue(pagtoMeioFinanciamento.getVlFinanciado());
             simulation.setEntryValue(pagtoMeioFinanciamento.getVlEntrada());
@@ -272,5 +250,38 @@ public class SimularWS {
         }
         
         return partnerClient;
+    }
+
+    private SimulacaoRQ montarTermosContratuais(WSIntegrador integrador, Simulation simulation, PartnerClient partnerClient, List<WSTermoFinanciamento> termoFinanciamentoList) throws ErrorException {
+        SimulacaoRQ simulacao = null;
+        
+        try {
+            WSTermoFinanciamento termo = termoFinanciamentoList.stream()
+                    .filter(termoFin -> termoFin.getCdTermo().equals("127")) // Caso seja relacionado ao CSC
+                    .findFirst()
+                    .orElseThrow(RuntimeException::new);
+                    
+            if(termo.getCdTermo().equals("127")){ 
+                ListTerms listTerms = new ListTerms();
+                listTerms.setAnswerCompanyOffer(termo.isRespOfertaCompanhia() ? "S" : "N");
+
+                Lgpd lgpd = new Lgpd();
+                lgpd.setAnswerGroupOffer(termo.isRespOfertaGrupo() ? "S" : "N");
+                lgpd.setAnswerPartnerOffer(termo.isRespOfertaParceiro() ? "S" : "N");
+
+                simulacao = new SimulacaoRQ();
+                simulacao.setListTerms(listTerms);
+                simulacao.setLgpd(lgpd);
+            }
+            
+            simulacao.setSimulation(simulation);
+            simulacao.setPartnerClient(partnerClient);
+            
+        }catch (Exception ee){
+            throw new ErrorException(integrador, SimularWS.class, "montarDadosCliente", 
+                            WSMensagemErroEnum.PSE, "Erro ao obter as Formas de Pagamento do Fornecedor.", WSIntegracaoStatusEnum.ATENCAO, ee, false);
+        }
+        
+        return simulacao;
     }
 }

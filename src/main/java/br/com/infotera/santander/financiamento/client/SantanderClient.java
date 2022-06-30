@@ -99,8 +99,9 @@ public class SantanderClient {
         return sessao;
     }
 
-    public IntegrationCodeRS getProductCSC(WSIntegrador integrador) throws ErrorException {
+    public List<IntegrationCodeRS> getProductCSC(WSIntegrador integrador) throws ErrorException {
         List result = null;
+        List<IntegrationCodeRS> listCode = null;
         String[] codigoIntegra = null;
         IntegrationCodeRS integrationCode = null;
         integrador.setDsAction("products");
@@ -109,7 +110,7 @@ public class SantanderClient {
             codigoIntegra = integrador.getSessao().getCdChave().split("#");
             result = restClient.sendReceive(integrador, null, HttpMethod.GET, "products"+ "/" + codigoIntegra[0], List.class);
             
-            List<IntegrationCodeRS> listCode = null;
+            
             if(result != null){
                 listCode = new ArrayList();
             
@@ -119,10 +120,10 @@ public class SantanderClient {
                     listCode.add(integrationCode);
                 }
 
-                integrationCode = listCode.stream()
-                        .filter(code -> code.getCode().equals("CSC"))
-                        .findFirst()
-                        .orElseThrow(ErrorException::new);
+//                integrationCode = listCode.stream()
+//                        .filter(code -> code.getCode().equals("CSC"))
+//                        .findFirst()
+//                        .orElseThrow(ErrorException::new);
             } else {
                 throw new ErrorException(integrador, RESTClient.class, "getProductCSC", WSMensagemErroEnum.GENCONEC, 
                     "Erro ao retornar os produtos (Santander - Financiamento) - Entre em contato com o fornecedor", WSIntegracaoStatusEnum.NEGADO, null, false);
@@ -136,7 +137,7 @@ public class SantanderClient {
                     "Erro ao retornar o produto CSC (Product CSC)" + ex.getMessage(), WSIntegracaoStatusEnum.NEGADO, ex, false);
         }
         
-        return integrationCode;
+        return listCode;
     }
 
     public TermosCondicoesRS retornarTermosCondicoes(WSIntegrador integrador) throws ErrorException {

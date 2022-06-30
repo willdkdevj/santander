@@ -10,7 +10,7 @@ public class IntegrationCodeRS {
     private Form subsegment;
     private Boolean isEnabledForStore;
     private Boolean isEnabledForSalesman;
-    private Boolean isEnabledForClientType;
+    private String isEnabledForClientType;
 
     public IntegrationCodeRS() {
     }
@@ -63,11 +63,11 @@ public class IntegrationCodeRS {
         this.isEnabledForSalesman = isEnabledForSalesman;
     }
 
-    public Boolean getIsEnabledForClientType() {
+    public String getIsEnabledForClientType() {
         return isEnabledForClientType;
     }
 
-    public void setIsEnabledForClientType(Boolean isEnabledForClientType) {
+    public void setIsEnabledForClientType(String isEnabledForClientType) {
         this.isEnabledForClientType = isEnabledForClientType;
     }
     
